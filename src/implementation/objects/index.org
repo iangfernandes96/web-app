@@ -225,8 +225,8 @@ class User():
             raise AttributeRequired("Role is missing")
 
         self.set_email(kwargs['email'])
-        self.setName(kwargs['name'])
-        self.setRole(kwargs['role'])
+        self.set_name(kwargs['name'])
+        self.set_role(kwargs['role'])
 
         User.users.append(self)
 #+END_SRC
@@ -239,49 +239,77 @@ class TestUser(TestCase):
 
     def test_user_creation_without_role(self):
         print "test_user_creation_without_role"
-        new_role = self.role
-        self.assertRaises(TypeError, Role, "abcd")
+        with self.assertRaises(AttributeRequired):
+            user = User(name = Name("robin Smith"), 
+            email = Email("smith@gmail.com"))
 
     def test_user_creation_with_role(self):
         print "test_user_creation_with_role"
-        new_role = self.role
-        if(new_role == "admin"):
-            self.assertEquals(new_role, "admin")
-        
-        if(new_role == 'user'):
-            self.assertEquals(new_role, "user")
+        user = User(name = Name("Robin Smith"), email=Email("smith@gmail.com"),
+        role=Role(name=Name("admin")))
+        self.assertEqual(user.role.name, "admin")
+        self.assertEqual(user.email, "smith@gmail.com")
+
  #+END_SRC
 
 
 *** Functions
 
 **** setEmail
-***** Implementaion
+***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_email(self, email):
         if isinstance(email, Email):
-            self.email = email
+            self.email = email.value
+        else:
+            raise TypeError("Email is invalid")
+
 #+END_SRC
 
 ***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_set_email_of_user(self):
+        print"test_set_email_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_email(Email("abc@gmail.com"))
+        self.assertEqual(user.email, "abc@gmail.com")
+#+END_SRC
 
 **** setName
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_name(self, name):
         if isinstance(name, Name):
-            self.name = name
+            self.name = name.value
 #+END_SRC
 ***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_set_name_of_user(self):
+        print"test_set_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_name(Name("abc"))
+        self.assertEqual(user.name, "abc")
+#+END_SRC
+
 
 **** setRole
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_role(self, role):
         if isinstance(role, Role):
-            self.role = Role
+            self.role = role
 #+END_SRC
 ***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_set_role_of_user(self):
+        print"test_set_role_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_role("admin")
+        self.assertEqual(user.role.name, "admin")
+#+END_SRC
 
 **** getRole
 ***** Implementation
@@ -290,6 +318,14 @@ class TestUser(TestCase):
         return self.role
 #+END_SRC
 ***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_get_role_of_user(self):
+        print"test_get_role_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_role = user.get_role()
+        self.assertEqual(new_role.name, user.role.name)
+#+END_SRC
 
 
 **** getEmail
@@ -298,13 +334,33 @@ class TestUser(TestCase):
         return self.email
  #+END_SRC
 
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_get_email_of_user(self):
+        print"test_get_email_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_email = user.get_email()
+        self.assertEqual(new_email, user.email)
+#+END_SRC
 
 **** getName
+***** Implementation
+
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_name(self):
         return self.name
 #+END_SRC
 
+***** Test
+
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_get_name_of_user(self):
+        print"test_get_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_name = user.get_name()
+        self.assertEqual(new_name, user.name)
+#+END_SRC
 
 **** getAll: Nil --> set[User]
 
@@ -318,10 +374,16 @@ class TestUser(TestCase):
 
 ***** Test getAll
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_user_get_all(self):
-        print "test_user_get_all"
-
+    def test_get_all(self):
+        print"test_get_all"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user1 = User(name=Name("def"), email = Email("def@gmail.com"),
+        role=Role(name=Name("user")))
+        new_user = user.get_all()
+        self.assertEqual(User.users, new_user)
 #+END_SRC
+
 
 
 **** toClient
@@ -359,7 +421,7 @@ class TestUser(TestCase):
 *** Definition
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 class Role():
-
+    name = None
 #+END_SRC
 
 
@@ -372,7 +434,10 @@ class Role():
 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def __init__(self, **kwargs):
-        print "fill"
+        if not 'name' in kwargs:
+            raise AttributeRequired("Role is missing")
+        self.set_name(kwargs['name'])
+        
 #+END_SRC
 
 *** Test Constructor
@@ -390,7 +455,8 @@ class TestRole(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_name(self, name):
-        print "fill"
+        if(name.value == "admin" or name.value =="user"):
+            self.name = name.value
 #+END_SRC
 
 ****** Test
