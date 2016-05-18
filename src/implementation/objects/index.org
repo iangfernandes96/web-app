@@ -156,9 +156,14 @@ class TestName(TestCase):
 class Email(object):
     value = None
     def __init__(self, value):
-        print "fill"
+        if is_email(value):
+            self.value = value
+        else:
+            raise TypeError("This is not a valid email id")
+
     def __str__(self):
-        print "fill"
+        return self.value
+
         
 #+END_SRC
 
@@ -168,13 +173,18 @@ class TestEmail(TestCase):
     TESTING = True
     def test_email_type(self):
         print "test_email_type"
+        new_email = Email("abc123@example.com")
+        #correct email
+        self.assertEqual(new_email.value, "abc123@example.com")
+        #incorrect name
+        self.assertRaises(TypeError, Email, "ab@sff@.@com")
 #+END_SRC
 
 ** User
 
 *** Mutable Data
 
-     These are the data associated with User type, which are mutable
+    These are the data associated with User type, which are mutable
 
      + Name
      + Email
@@ -185,6 +195,10 @@ class TestEmail(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 class User():
     users = []     # this is a static variable, accessed by User.users
+    email = None
+    role = None
+    name = None
+    
 #+END_SRC
 
 
@@ -201,7 +215,20 @@ class User():
 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def __init__(self, **kwargs):
-        print "fill"
+        if not 'name' in kwargs:
+            raise AttributeRequired("Name is missing")
+
+        if not 'email' in kwargs:
+            raise AttributeRequired("Email is missing")
+       
+        if not 'role' in kwargs:
+            raise AttributeRequired("Role is missing")
+
+        self.set_email(kwargs['email'])
+        self.setName(kwargs['name'])
+        self.setRole(kwargs['role'])
+
+        User.users.append(self)
 #+END_SRC
 
 
@@ -212,9 +239,17 @@ class TestUser(TestCase):
 
     def test_user_creation_without_role(self):
         print "test_user_creation_without_role"
+        new_role = self.role
+        self.assertRaises(TypeError, Role, "abcd")
 
     def test_user_creation_with_role(self):
         print "test_user_creation_with_role"
+        new_role = self.role
+        if(new_role == "admin"):
+            self.assertEquals(new_role, "admin")
+        
+        if(new_role == 'user'):
+            self.assertEquals(new_role, "user")
  #+END_SRC
 
 
@@ -224,7 +259,8 @@ class TestUser(TestCase):
 ***** Implementaion
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_email(self, email):
-        print "fill"
+        if isinstance(email, Email):
+            self.email = email
 #+END_SRC
 
 ***** Test
@@ -233,7 +269,8 @@ class TestUser(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_name(self, name):
-        print "fill"
+        if isinstance(name, Name):
+            self.name = name
 #+END_SRC
 ***** Test
 
@@ -241,7 +278,8 @@ class TestUser(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_role(self, role):
-        print "fill"
+        if isinstance(role, Role):
+            self.role = Role
 #+END_SRC
 ***** Test
 
@@ -249,7 +287,7 @@ class TestUser(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_role(self):
-        print "fill"
+        return self.role
 #+END_SRC
 ***** Test
 
@@ -257,14 +295,14 @@ class TestUser(TestCase):
 **** getEmail
  #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_email(self):
-        print "fill"
+        return self.email
  #+END_SRC
 
 
 **** getName
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_name(self):
-        print "fill"
+        return self.name
 #+END_SRC
 
 
@@ -274,7 +312,7 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     @staticmethod
     def get_all():
-        print "fill"
+        return User.users
 #+END_SRC
 
 
@@ -290,11 +328,11 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def to_client(self):
         pass
-#        return {
-#            'name': self.name,
-#            'email': self.email,
-#            'role': self.role.to_client()
-#        }
+        return {
+            'name': self.name,
+            'email': self.email,
+            'role': self.role.to_client()
+        }
 #+END_SRC
 
 
