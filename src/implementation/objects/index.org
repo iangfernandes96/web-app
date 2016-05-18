@@ -422,6 +422,7 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 class Role():
     name = None
+    roles = [] # a static variable, to hold the roles
 #+END_SRC
 
 
@@ -438,6 +439,8 @@ class Role():
             raise AttributeRequired("Role is missing")
         self.set_name(kwargs['name'])
         
+        Role.roles.append(kwargs['name'])
+        
 #+END_SRC
 
 *** Test Constructor
@@ -446,6 +449,9 @@ class TestRole(TestCase):
     TESTING = True
     def test_role_creation(self):
         print "test_role_creation"
+        user = User(name = Name("Robin Smith"), email=Email("smith@gmail.com"),
+        role=Role(name=Name("admin")))
+        self.assertEqual(user.role.name, "admin")
 #+END_SRC
 
 
@@ -457,22 +463,38 @@ class TestRole(TestCase):
     def set_name(self, name):
         if(name.value == "admin" or name.value =="user"):
             self.name = name.value
+        else:
+            raise AttributeException("Incorrect role")
 #+END_SRC
 
-****** Test
+***** Test
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_role_set_name(self):
-        print "test_role_set_name"
+        print"test_role_set_name"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_role("admin")
+        self.assertEqual(user.role.name, "admin")
 #+END_SRC
+
 
 
 **** getName
-
+***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_name(self):
-        print "fill"
+        return self.name
 #+END_SRC
 
+***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+    def test_get_name_of_user(self):
+        print"test_get_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_role = user.get_role()
+        self.assertEqual(new_role, user.role)
+#+END_SRC
 
 **** getAll: Nil --> set[Role]
 
@@ -480,19 +502,27 @@ class TestRole(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     @staticmethod
     def get_all():
-#        return Role.roles
+        return Role.roles
         pass
 #+END_SRC
 
 
 ***** Test getAll: Nil --> set[Role]
  #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_role_get_all(self):
-        print "test_role_get_all"
- #+END_SRC
+    def test_set_name_of_user(self):
+        print"test_set_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user1 = User(name=Name("def"), email = Email("def@gmail.com"),
+        role=Role(name=Name("user")))
+        new_roles = user1.role.get_all()
+        self.assertEqual(new_roles, Role.roles)
+#+END_SRC
 
 
+ 
 **** to_client
+***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def to_client(self):
         print "fill"
