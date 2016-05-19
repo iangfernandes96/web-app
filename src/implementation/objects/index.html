@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-18 Wed 15:20 -->
+<!-- 2016-05-19 Thu 09:30 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Object  Implementation of Mini Version of User Directory Application</title>
@@ -156,7 +156,7 @@ for the JavaScript code in this tag.
 <li><a href="#orgheadline4">1.4. Init Files</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline57">2. Object Model</a>
+<li><a href="#orgheadline62">2. Object Model</a>
 <ul>
 <li><a href="#orgheadline7">2.1. Custom Exceptions</a>
 <ul>
@@ -181,27 +181,27 @@ for the JavaScript code in this tag.
 <li><a href="#orgheadline15">2.4.2. Test the Construction</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline41">2.5. User</a>
+<li><a href="#orgheadline43">2.5. User</a>
 <ul>
 <li><a href="#orgheadline17">2.5.1. Mutable Data</a></li>
 <li><a href="#orgheadline18">2.5.2. Definition</a></li>
 <li><a href="#orgheadline21">2.5.3. Constructor</a></li>
-<li><a href="#orgheadline40">2.5.4. Functions</a></li>
+<li><a href="#orgheadline42">2.5.4. Functions</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline56">2.6. Role</a>
+<li><a href="#orgheadline61">2.6. Role</a>
 <ul>
-<li><a href="#orgheadline42">2.6.1. Introduction</a></li>
-<li><a href="#orgheadline43">2.6.2. Mutable Data</a></li>
-<li><a href="#orgheadline44">2.6.3. Definition</a></li>
-<li><a href="#orgheadline45">2.6.4. Constructor</a></li>
-<li><a href="#orgheadline46">2.6.5. Test Constructor</a></li>
-<li><a href="#orgheadline55">2.6.6. Functions</a></li>
+<li><a href="#orgheadline44">2.6.1. Introduction</a></li>
+<li><a href="#orgheadline45">2.6.2. Mutable Data</a></li>
+<li><a href="#orgheadline46">2.6.3. Definition</a></li>
+<li><a href="#orgheadline47">2.6.4. Constructor</a></li>
+<li><a href="#orgheadline48">2.6.5. Test Constructor</a></li>
+<li><a href="#orgheadline60">2.6.6. Functions</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline58">3. Run Test Cases</a></li>
+<li><a href="#orgheadline63">3. Run Test Cases</a></li>
 </ul>
 </div>
 </div>
@@ -278,8 +278,8 @@ import re
 
 
 
-<div id="outline-container-orgheadline57" class="outline-2">
-<h2 id="orgheadline57"><span class="section-number-2">2</span> Object Model</h2>
+<div id="outline-container-orgheadline62" class="outline-2">
+<h2 id="orgheadline62"><span class="section-number-2">2</span> Object Model</h2>
 <div class="outline-text-2" id="text-2">
 </div><div id="outline-container-orgheadline7" class="outline-3">
 <h3 id="orgheadline7"><span class="section-number-3">2.1</span> Custom Exceptions</h3>
@@ -458,8 +458,8 @@ Following is the constructor for this class.
 </div>
 </div>
 
-<div id="outline-container-orgheadline41" class="outline-3">
-<h3 id="orgheadline41"><span class="section-number-3">2.5</span> User</h3>
+<div id="outline-container-orgheadline43" class="outline-3">
+<h3 id="orgheadline43"><span class="section-number-3">2.5</span> User</h3>
 <div class="outline-text-3" id="text-2-5">
 </div><div id="outline-container-orgheadline17" class="outline-4">
 <h4 id="orgheadline17"><span class="section-number-4">2.5.1</span> Mutable Data</h4>
@@ -496,7 +496,7 @@ These are the data associated with User type, which are mutable
 <div id="outline-container-orgheadline21" class="outline-4">
 <h4 id="orgheadline21"><span class="section-number-4">2.5.3</span> Constructor</h4>
 <div class="outline-text-4" id="text-2-5-3">
-</div><ol class="org-ol"><li><a id="orgheadline19"></a>Implexmentation<br  /><div class="outline-text-5" id="text-2-5-3-1">
+</div><ol class="org-ol"><li><a id="orgheadline19"></a>Implementation<br  /><div class="outline-text-5" id="text-2-5-3-1">
 <p>
 Signature of the constructor of <code>User</code> is as follows:
 </p>
@@ -519,8 +519,10 @@ usr = User(name=&lt;object of Name&gt;, email=&lt;object of Email&gt;,
             raise AttributeRequired("Role is missing")
 
         self.set_email(kwargs['email'])
-        self.setName(kwargs['name'])
-        self.setRole(kwargs['role'])
+        self.set_name(kwargs['name'])
+        self.set_role(kwargs['role'])
+
+        User.users.append(self)
 </pre>
 </div>
 </div></li>
@@ -534,119 +536,197 @@ usr = User(name=&lt;object of Name&gt;, email=&lt;object of Email&gt;,
 
     def test_user_creation_without_role(self):
         print "test_user_creation_without_role"
-        new_role = self.role
-        self.assertRaises(TypeError, Role, "abcd")
+        with self.assertRaises(AttributeRequired):
+            user = User(name = Name("robin Smith"), 
+            email = Email("smith@gmail.com"))
 
     def test_user_creation_with_role(self):
         print "test_user_creation_with_role"
-        new_role = self.role
-        if(new_role == "admin"):
-            self.assertEquals(new_role, "admin")
-        
-        if(new_role == 'user'):
-            self.assertEquals(new_role, "user")
+        user = User(name = Name("Robin Smith"), email=Email("smith@gmail.com"),
+        role=Role(name=Name("admin")))
+        self.assertEqual(user.role.name, "admin")
+        self.assertEqual(user.email, "smith@gmail.com")
 </pre>
 </div>
 </div></li></ol>
 </div>
 
 
-<div id="outline-container-orgheadline40" class="outline-4">
-<h4 id="orgheadline40"><span class="section-number-4">2.5.4</span> Functions</h4>
+<div id="outline-container-orgheadline42" class="outline-4">
+<h4 id="orgheadline42"><span class="section-number-4">2.5.4</span> Functions</h4>
 <div class="outline-text-4" id="text-2-5-4">
-</div><ol class="org-ol"><li><a id="orgheadline24"></a>setEmail<br  /><ol class="org-ol"><li><a id="orgheadline22"></a>Implementaion<br  /><div class="outline-text-6" id="text-2-5-4-1-1">
+</div><ol class="org-ol"><li><a id="orgheadline24"></a>setEmail<br  /><ol class="org-ol"><li><a id="orgheadline22"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-1-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def set_email(self, email):
-        print "fill"
+        if isinstance(email, Email):
+            self.email = email.value
+        else:
+            raise TypeError("Email is invalid")
 </pre>
 </div>
 </div></li>
 
-<li><a id="orgheadline23"></a>Test<br  /></li></ol></li>
+<li><a id="orgheadline23"></a>Test<br  /><div class="outline-text-6" id="text-2-5-4-1-2">
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_set_email_of_user(self):
+        print"test_set_email_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_email(Email("abc@gmail.com"))
+        self.assertEqual(user.email, "abc@gmail.com")
+</pre>
+</div>
+</div></li></ol></li>
 
 <li><a id="orgheadline27"></a>setName<br  /><ol class="org-ol"><li><a id="orgheadline25"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-2-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def set_name(self, name):
-        print "fill"
+        if isinstance(name, Name):
+            self.name = name.value
 </pre>
 </div>
 </div></li>
-<li><a id="orgheadline26"></a>Test<br  /></li></ol></li>
+<li><a id="orgheadline26"></a>Test<br  /><div class="outline-text-6" id="text-2-5-4-2-2">
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_set_name_of_user(self):
+        print"test_set_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_name(Name("abc"))
+        self.assertEqual(user.name, "abc")
+</pre>
+</div>
+</div></li></ol></li>
+
 
 <li><a id="orgheadline30"></a>setRole<br  /><ol class="org-ol"><li><a id="orgheadline28"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-3-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def set_role(self, role):
-        print "fill"
+        if isinstance(role, Role):
+            self.role = role
 </pre>
 </div>
 </div></li>
-<li><a id="orgheadline29"></a>Test<br  /></li></ol></li>
+<li><a id="orgheadline29"></a>Test<br  /><div class="outline-text-6" id="text-2-5-4-3-2">
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_set_role_of_user(self):
+        print"test_set_role_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_role("admin")
+        self.assertEqual(user.role.name, "admin")
+</pre>
+</div>
+</div></li></ol></li>
 
 <li><a id="orgheadline33"></a>getRole<br  /><ol class="org-ol"><li><a id="orgheadline31"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-4-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def get_role(self):
-        print "fill"
+        return self.role
 </pre>
 </div>
 </div></li>
-<li><a id="orgheadline32"></a>Test<br  /></li></ol></li>
+<li><a id="orgheadline32"></a>Test<br  /><div class="outline-text-6" id="text-2-5-4-4-2">
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_get_role_of_user(self):
+        print"test_get_role_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_role = user.get_role()
+        self.assertEqual(new_role.name, user.role.name)
+</pre>
+</div>
+</div></li></ol></li>
 
 
 <li><a id="orgheadline34"></a>getEmail<br  /><div class="outline-text-5" id="text-2-5-4-5">
 <div class="org-src-container">
 
 <pre class="src src-python">   def get_email(self):
-       print "fill"
+       return self.email
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_get_email_of_user(self):
+        print"test_get_email_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_email = user.get_email()
+        self.assertEqual(new_email, user.email)
 </pre>
 </div>
 </div></li>
 
-
-<li><a id="orgheadline35"></a>getName<br  /><div class="outline-text-5" id="text-2-5-4-6">
+<li><a id="orgheadline37"></a>getName<br  /><ol class="org-ol"><li><a id="orgheadline35"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-6-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def get_name(self):
-        print "fill"
+        return self.name
 </pre>
 </div>
 </div></li>
 
+<li><a id="orgheadline36"></a>Test<br  /><div class="outline-text-6" id="text-2-5-4-6-2">
+<div class="org-src-container">
 
-<li><a id="orgheadline38"></a>getAll: Nil &#x2013;&gt; set[User]<br  /><ol class="org-ol"><li><a id="orgheadline36"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-7-1">
+<pre class="src src-python">    def test_get_name_of_user(self):
+        print"test_get_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_name = user.get_name()
+        self.assertEqual(new_name, user.name)
+</pre>
+</div>
+</div></li></ol></li>
+
+<li><a id="orgheadline40"></a>getAll: Nil &#x2013;&gt; set[User]<br  /><ol class="org-ol"><li><a id="orgheadline38"></a>Implementation<br  /><div class="outline-text-6" id="text-2-5-4-7-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    @staticmethod
     def get_all():
-        print "fill"
+        return User.users
 </pre>
 </div>
 </div></li>
 
 
-<li><a id="orgheadline37"></a>Test getAll<br  /><div class="outline-text-6" id="text-2-5-4-7-2">
+<li><a id="orgheadline39"></a>Test getAll<br  /><div class="outline-text-6" id="text-2-5-4-7-2">
 <div class="org-src-container">
 
-<pre class="src src-python">    def test_user_get_all(self):
-        print "test_user_get_all"
+<pre class="src src-python">    def test_get_all(self):
+        print"test_get_all"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user1 = User(name=Name("def"), email = Email("def@gmail.com"),
+        role=Role(name=Name("user")))
+        new_user = user.get_all()
+        self.assertEqual(User.users, new_user)
 </pre>
 </div>
 </div></li></ol></li>
 
 
-<li><a id="orgheadline39"></a>toClient<br  /><div class="outline-text-5" id="text-2-5-4-8">
+
+<li><a id="orgheadline41"></a>toClient<br  /><div class="outline-text-5" id="text-2-5-4-8">
 <div class="org-src-container">
 
 <pre class="src src-python">    def to_client(self):
         pass
-#        return {
-#            'name': self.name,
-#            'email': self.email,
-#            'role': self.role.to_client()
-#        }
+        return {
+            'name': self.name,
+            'email': self.email,
+            'role': self.role.to_client()
+        }
 </pre>
 </div>
 </div></li></ol>
@@ -655,11 +735,11 @@ usr = User(name=&lt;object of Name&gt;, email=&lt;object of Email&gt;,
 
 
 
-<div id="outline-container-orgheadline56" class="outline-3">
-<h3 id="orgheadline56"><span class="section-number-3">2.6</span> Role</h3>
+<div id="outline-container-orgheadline61" class="outline-3">
+<h3 id="orgheadline61"><span class="section-number-3">2.6</span> Role</h3>
 <div class="outline-text-3" id="text-2-6">
-</div><div id="outline-container-orgheadline42" class="outline-4">
-<h4 id="orgheadline42"><span class="section-number-4">2.6.1</span> Introduction</h4>
+</div><div id="outline-container-orgheadline44" class="outline-4">
+<h4 id="orgheadline44"><span class="section-number-4">2.6.1</span> Introduction</h4>
 <div class="outline-text-4" id="text-2-6-1">
 <p>
 A Role has got certain privileges.  In this current application, the
@@ -678,8 +758,8 @@ except himself.</dd>
 </div>
 
 
-<div id="outline-container-orgheadline43" class="outline-4">
-<h4 id="orgheadline43"><span class="section-number-4">2.6.2</span> Mutable Data</h4>
+<div id="outline-container-orgheadline45" class="outline-4">
+<h4 id="orgheadline45"><span class="section-number-4">2.6.2</span> Mutable Data</h4>
 <div class="outline-text-4" id="text-2-6-2">
 <p>
 These are the data associated with Role type, which are mutable
@@ -692,20 +772,22 @@ These are the data associated with Role type, which are mutable
 </div>
 
 
-<div id="outline-container-orgheadline44" class="outline-4">
-<h4 id="orgheadline44"><span class="section-number-4">2.6.3</span> Definition</h4>
+<div id="outline-container-orgheadline46" class="outline-4">
+<h4 id="orgheadline46"><span class="section-number-4">2.6.3</span> Definition</h4>
 <div class="outline-text-4" id="text-2-6-3">
 <div class="org-src-container">
 
 <pre class="src src-python">class Role():
+    name = None
+    roles = [] # a static variable, to hold the roles
 </pre>
 </div>
 </div>
 </div>
 
 
-<div id="outline-container-orgheadline45" class="outline-4">
-<h4 id="orgheadline45"><span class="section-number-4">2.6.4</span> Constructor</h4>
+<div id="outline-container-orgheadline47" class="outline-4">
+<h4 id="orgheadline47"><span class="section-number-4">2.6.4</span> Constructor</h4>
 <div class="outline-text-4" id="text-2-6-4">
 <p>
 The signature of Role is defined as follows
@@ -717,14 +799,18 @@ role = Role(name=&lt;Object of Name&gt;)
 <div class="org-src-container">
 
 <pre class="src src-python">    def __init__(self, **kwargs):
-        print "fill"
+        if not 'name' in kwargs:
+            raise AttributeRequired("Role is missing")
+        self.set_name(kwargs['name'])
+        
+        Role.roles.append(kwargs['name'])
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline46" class="outline-4">
-<h4 id="orgheadline46"><span class="section-number-4">2.6.5</span> Test Constructor</h4>
+<div id="outline-container-orgheadline48" class="outline-4">
+<h4 id="orgheadline48"><span class="section-number-4">2.6.5</span> Test Constructor</h4>
 <div class="outline-text-4" id="text-2-6-5">
 <div class="org-src-container">
 
@@ -732,80 +818,110 @@ role = Role(name=&lt;Object of Name&gt;)
     TESTING = True
     def test_role_creation(self):
         print "test_role_creation"
+        user = User(name = Name("Robin Smith"), email=Email("smith@gmail.com"),
+        role=Role(name=Name("admin")))
+        self.assertEqual(user.role.name, "admin")
 </pre>
 </div>
 </div>
 </div>
 
 
-<div id="outline-container-orgheadline55" class="outline-4">
-<h4 id="orgheadline55"><span class="section-number-4">2.6.6</span> Functions</h4>
+<div id="outline-container-orgheadline60" class="outline-4">
+<h4 id="orgheadline60"><span class="section-number-4">2.6.6</span> Functions</h4>
 <div class="outline-text-4" id="text-2-6-6">
-</div><ol class="org-ol"><li><a id="orgheadline49"></a>setName<br  /><ol class="org-ol"><li><a id="orgheadline48"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-1-1">
+</div><ol class="org-ol"><li><a id="orgheadline51"></a>setName<br  /><ol class="org-ol"><li><a id="orgheadline49"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-1-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def set_name(self, name):
-        print "fill"
-</pre>
-</div>
-</div>
-
-<ol class="org-ol"><li><a id="orgheadline47"></a>Test<br  /><div class="outline-text-7" id="text-2-6-6-1-1-1">
-<div class="org-src-container">
-
-<pre class="src src-python">    def test_role_set_name(self):
-        print "test_role_set_name"
-</pre>
-</div>
-</div></li></ol></li></ol></li>
-
-
-<li><a id="orgheadline50"></a>getName<br  /><div class="outline-text-5" id="text-2-6-6-2">
-<div class="org-src-container">
-
-<pre class="src src-python">    def get_name(self):
-        print "fill"
+        if(name.value == "admin" or name.value =="user"):
+            self.name = name.value
+        else:
+            raise AttributeException("Incorrect role")
 </pre>
 </div>
 </div></li>
 
+<li><a id="orgheadline50"></a>Test<br  /><div class="outline-text-6" id="text-2-6-6-1-2">
+<div class="org-src-container">
 
-<li><a id="orgheadline53"></a>getAll: Nil &#x2013;&gt; set[Role]<br  /><ol class="org-ol"><li><a id="orgheadline51"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-3-1">
+<pre class="src src-python">    def test_role_set_name(self):
+        print"test_role_set_name"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        user.set_role("admin")
+        self.assertEqual(user.role.name, "admin")
+</pre>
+</div>
+</div></li></ol></li>
+
+
+
+<li><a id="orgheadline54"></a>getName<br  /><ol class="org-ol"><li><a id="orgheadline52"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-2-1">
+<div class="org-src-container">
+
+<pre class="src src-python">    def get_name(self):
+        return self.name
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline53"></a>Test<br  /><div class="outline-text-6" id="text-2-6-6-2-2">
+<div class="org-src-container">
+
+<pre class="src src-python">    def test_get_name_of_user(self):
+        print"test_get_name_of_user"
+        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+        role=Role(name=Name("admin")))
+        new_role = user.get_role()
+        self.assertEqual(new_role, user.role)
+</pre>
+</div>
+</div></li></ol></li>
+
+<li><a id="orgheadline57"></a>getAll: Nil &#x2013;&gt; set[Role]<br  /><ol class="org-ol"><li><a id="orgheadline55"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-3-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    @staticmethod
     def get_all():
-#        return Role.roles
+        return Role.roles
         pass
 </pre>
 </div>
 </div></li>
 
 
-<li><a id="orgheadline52"></a>Test getAll: Nil &#x2013;&gt; set[Role]<br  /><div class="outline-text-6" id="text-2-6-6-3-2">
+<li><a id="orgheadline56"></a>Test getAll: Nil &#x2013;&gt; set[Role]<br  /><div class="outline-text-6" id="text-2-6-6-3-2">
 <div class="org-src-container">
 
-<pre class="src src-python">   def test_role_get_all(self):
-       print "test_role_get_all"
+<pre class="src src-python">   def test_set_name_of_user(self):
+       print"test_set_name_of_user"
+       user = User(name=Name("abc"), email = Email("abc@gmail.com"),
+       role=Role(name=Name("admin")))
+       user1 = User(name=Name("def"), email = Email("def@gmail.com"),
+       role=Role(name=Name("user")))
+       new_roles = user1.role.get_all()
+       self.assertEqual(new_roles, Role.roles)
 </pre>
 </div>
 </div></li></ol></li>
 
 
-<li><a id="orgheadline54"></a>to_client<br  /><div class="outline-text-5" id="text-2-6-6-4">
+
+<li><a id="orgheadline59"></a>to_client<br  /><ol class="org-ol"><li><a id="orgheadline58"></a>Implementation<br  /><div class="outline-text-6" id="text-2-6-6-4-1">
 <div class="org-src-container">
 
 <pre class="src src-python">    def to_client(self):
         print "fill"
 </pre>
 </div>
-</div></li></ol>
+</div></li></ol></li></ol>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline58" class="outline-2">
-<h2 id="orgheadline58"><span class="section-number-2">3</span> Run Test Cases</h2>
+<div id="outline-container-orgheadline63" class="outline-2">
+<h2 id="orgheadline63"><span class="section-number-2">3</span> Run Test Cases</h2>
 <div class="outline-text-2" id="text-3">
 <div class="org-src-container">
 
@@ -819,7 +935,7 @@ role = Role(name=&lt;Object of Name&gt;)
 <div id="postamble" class="status">
 <p class="date">Date: <span class="timestamp-wrapper"><span class="timestamp">[2016-05-11 Wed]</span></span></p>
 <p class="author">Author: VLEAD</p>
-<p class="date">Created: 2016-05-18 Wed 15:20</p>
+<p class="date">Created: 2016-05-19 Thu 09:30</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
