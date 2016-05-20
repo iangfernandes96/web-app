@@ -446,6 +446,53 @@ class TestUser(TestCase):
 #+END_SRC
 
 
+**** changeEmail
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
+    @staticmethod   
+    def changeEmail(user,session,email):
+        if(session.user.role.name=="user"):
+            existing_users= filter(lambda x: x.email == email, User.users)
+            if not existing_users:
+                Session.delsessions(user)
+                if(user.email==session.user.email):
+                    for u in User.users:
+                        if(u.email==user.email):
+                            u.set_email(email)
+            else:
+                raise ConstraintError('user can change only his email not others emails')
+        
+        else:
+            raise ConstraintError('Email already exists in the system')
+
+       if(session.user.role.name=="admin"):
+           existing_users= filter(lambda x: x.email == email, User.users)
+           if not existing_users:       
+               if not Session.loggedin(user):
+                   for u in User.users:
+                       if( u.email==user.email):
+                           u.set_email(email)
+               else:
+                   raise ConstraintError('Users currently logged in cannot change email')
+        
+           else:
+               raise ConstraintError('Email already exists in the system')
+
+#+END_SRC
+
+**** loggedIn
+***** Implementation
+
+#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
+    @staticmethod
+    def loggedin(user):
+        logged-in =filter(lambda x: x.user.email== user.email, Session.sessions))
+        if logged-in:
+            return true
+        else:
+            return false
+
+#+END_SRC
 
 **** toClient
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
@@ -483,7 +530,9 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 class Role():
     name = None
-    roles = [] # a static variable, to hold the roles
+    admin = None
+    user = None
+
 #+END_SRC
 
 
@@ -495,13 +544,14 @@ class Role():
     #+END_EXAMPLE
 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    def __init__(self, **kwargs):
-        if not 'name' in kwargs:
-            raise AttributeRequired("Role is missing")
-        self.set_name(kwargs['name'])
-        
-        Role.roles.append(kwargs['name'])
-        
+    def __init__(self, name):
+        self.name = name
+    
+    def __str__(self):
+        return self.name
+
+Role.admin = Role("admin")
+Role.user = Role("user")
 #+END_SRC
 
 *** Test Constructor
@@ -511,82 +561,20 @@ class TestRole(TestCase):
     def test_role_creation(self):
         print "test_role_creation"
         user = User(name = Name("Robin Smith"), email=Email("smith@gmail.com"),
-        role=Role(name=Name("admin")))
+        role=Role("admin"))
         self.assertEqual(user.role.name, "admin")
 #+END_SRC
 
 
 *** Functions
-
-**** setName
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    def set_name(self, name):
-        if(name.value == "admin" or name.value =="user"):
-            self.name = name.value
-        else:
-            raise AttributeException("Incorrect role")
-#+END_SRC
-
-***** Test
-#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_role_set_name(self):
-        print"test_role_set_name"
-        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
-        role=Role(name=Name("admin")))
-        user.set_role("admin")
-        self.assertEqual(user.role.name, "admin")
-#+END_SRC
-
-
-
-**** getName
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    def get_name(self):
-        return self.name
-#+END_SRC
-
-***** Test
-#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_get_name_of_user(self):
-        print"test_get_name_of_user"
-        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
-        role=Role(name=Name("admin")))
-        new_role = user.get_role()
-        self.assertEqual(new_role, user.role)
-#+END_SRC
-
-**** getAll: Nil --> set[Role]
-
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    @staticmethod
-    def get_all():
-        return Role.roles
-        pass
-#+END_SRC
-
-
-***** Test getAll: Nil --> set[Role]
- #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_get_all(self):
-        print"test_set_name_of_user"
-        user = User(name=Name("abc"), email = Email("abc@gmail.com"),
-        role=Role(name=Name("admin")))
-        user1 = User(name=Name("def"), email = Email("def@gmail.com"),
-        role=Role(name=Name("user")))
-        new_roles = user1.role.get_all()
-        self.assertEqual(new_roles, Role.roles)
-#+END_SRC
-
-
-
 **** to_client
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def to_client(self):
-        print "fill"
+        return {
+        'role' : self.name
+        }
+
 #+END_SRC
 
 
@@ -602,99 +590,97 @@ class Session(object):
 *** Constructor
 **** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    def __init__(self, user):
-        self.user = user
-        Session.sessions.append(self)
+    def __init__(self, **kwargs):
+    if 'user' not in kwargs:
+        raise AttributeRequired("user is mandatory")
+
+    self._set_user(kwargs['user'])
 #+END_SRC
 
 *** Test constructor
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 class TestSession(TestCase):
-    
     TESTING = True
-        
+
     def setUp(self):
-        setUp()
+        setup()
 
     def tearDown(self):
-        setUp()
+        tearDown()
 
     def test_session_creation(self):
         print "test_session_creation"
-        user = User(name = Name("ghi"), email = Email("ghi@gmail.com"),
-        role = Role(name = Name("admin")))
-        new_sessions = Session.get_all_sessions()
-        User.add(user,Session(user = user))
-        new_sessions1 = Session.get_all_sessions()
-        self.assertEqual( len(new_sessions), len(new_sessions1)  )
+        user = User(name=Name("Robin Smith"), 
+                    email=Email("smith@gmail.com"),
+                    role=Role.user)
+        session = Session(user=user)
+        self.assertEqual(session.user.role.name, "user")
 
 #+END_SRC
 
 *** Operations
 
-**** getAllSessions
+**** getUser
 
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    @staticmethod
-    def get_all_sessions():
-        return Session.sessions
+    def get_user(self):
+        return self.user
 #+END_SRC
 
-**** deleteSession
+**** _set_user
+
 ***** Implementation 
 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    @staticmethod
-    def delete_session(user):
-        sessions = filter(lambda session:user.email != session.user.email,
-        Session.sessions)
-        Session.sessions = sessions
+    def _set_user(self, user):
+    if not isinstance(user, User):
+        raise TypeError('`user` argument should be of type User.')
+    else:
+        self.user = user
 #+END_SRC
 
 ***** Test
-#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_delete_session(self):
-        print"test_delete_session"
-        user = User(name=Name("def"), email = Email("abc1@gmail.com"),
-        role=Role(name=Name("admin")))
-        User.add(user,Session(user = user))
-        new_sessions = Session.get_all_sessions()
-        Session.delete_session(user)
-        self.assertEqual( len(Session.sessions)+1, len(new_sessions))
-
-#+END_SRC
-
-**** getUserEmail
-
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-    @staticmethod
-    def get_user(user):
-        return user.email
-#+END_SRC
-
-***** Test
-#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    def test_get_email_of_user(self):
-        print "test_get_email_of_user"
-        user = User(name=Name("def"), email = Email("def@gmail.com"),
-        role=Role(name=Name("admin")))
-        User.add(user,Session(user = user))
-        new_email = Session.get_user(user)
-        self.assertEqual(new_email, "def@gmail.com")
-
-#+END_SRC
-
+    
 **** toClient
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def to_client(self):
-        return {
-            'session': self.user.to_client()
-            }
+    return {
+        'session': self.user.to_client()
+    }
 #+END_SRC
 
+
+** System
+
+*** Definition
+#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
+from sets import Set
+class System ():
+    user_set  = Set()
+    session_set = Set()
+
+    def __init__(self):
+        admin_user = User(name=Name("admin"), 
+                          email=Email("app-admin@vlabs.ac.in"), 
+                          role=Role.admin)
+        self.user_set.add(admin_user)
+#+END_SRC
+
+*** Operations
+
+**** add_user
+**** del_user
+**** show_users
+**** get_user_by_email
+**** make_user
+**** get_email_of_user
+**** get_name_of_user
+**** get_role_of_user
+**** login
+**** del_session
+**** show_sessions
 
 * Run Test Cases
 ** Initialization 
