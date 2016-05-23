@@ -1086,6 +1086,87 @@ class TestSystem(TestCase):
 #+END_SRC    
 
 
+**** set_email_of_user
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
+    def set_email_of_user(self, user, email, session):
+        if session in self.session_set:
+            check = filter(lambda x: x.email == email, self.user_set)
+            if not check:
+                if user in self.user_set:
+                    if session.user == user:
+                        user.set_email(email)
+                    elif session.user.role == Role.admin:
+                        user.set_email(email)
+                    else:
+                        raise NotAuthroizedError("You don't have permission to change the email")
+                else:
+                    raise ConstraintError('User does not exist')
+            else:
+                raise ConstraintError("Email already exists")
+        else:
+            raise ConstraintError("Invalid Session")
+
+#+END_SRC
+
+***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
+
+    def test_set_email_of_user_valid_admin(self):
+        print "test_set_email_of_user_valid_admin"
+        user = User(name = "abcdef", email = "abcdef@gmail.com", role = Role.user)
+        admin_session_list = filter(lambda x: x.user.role == Role.admin, system.session_set)
+        admin_session = admin_session_list[0]
+        global system
+        system.add_user(user, admin_session)
+        system.login(user)
+        system.set_email_of_user(user, "abcdef123@gmail.com", admin_session)
+        user_check = system.get_email_of_user(user, admin_session)
+        self.assertEquals( user_check , user.email)
+
+    
+    def test_set_email_of_user_valid_user(self):
+        global system
+        print "test_get_name_of_user_invalid_user"
+        user = User(name = "ancd", email = "ancd@gmail.com", role = Role.user)
+        admin_session_list = filter(lambda x: x.user.role == Role.admin, system.session_set)
+        admin_session = admin_session_list[0]
+        system.add_user(user, admin_session)
+        system.login(user)
+        user_sessions = filter(lambda x: x.user.email == user.email,
+        system.session_set)
+        user_session = user_sessions[0]
+        system.set_email_of_user(user, "abcdefghi@gmail.com", user_session)
+        user_check = system.get_email_of_user(user, admin_session)
+        self.assertEquals(user_check, user.email)
+               
+    
+    def test_set_email_of_user_invalid_session(self):
+        print "test_set_name_of_user_invalid_session"
+        user = User(name = "abcd", email = "abcd@gmail.com", role = Role.user)
+        admin_session_list = filter(lambda x: x.user.role == Role.admin, system.session_set)
+        admin_session = admin_session_list[0]
+        system.add_user(user, admin_session)
+        session = Session(user = user)
+        
+        with self.assertRaises(ConstraintError):
+            email_check = system.set_email_of_user(user, "abcdef@gmail.com", session)
+   
+    
+
+    def test_set_email_of_user_invalid_email(self):
+        print "test_set_name_of_user_invalid_email"
+        user = User(name = "abcd", email = "abcd@gmail.com", role = Role.user)
+        admin_session_list = filter(lambda x: x.user.role == Role.admin, system.session_set)
+        admin_session = admin_session_list[0]
+        system.add_user(user, admin_session)
+        session = Session(user = user)
+        
+        with self.assertRaises(ConstraintError):
+            email_check = system.set_email_of_user(user, "abcd@gmail.com", admin_session)
+   
+        
+#+END_SRC
 
 **** get_role_of_user
 ***** Implementation
