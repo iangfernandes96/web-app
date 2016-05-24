@@ -28,11 +28,10 @@ import json
 
 from op_exceptions import AttributeRequired
 from utils import *
-
-
+#from tests.test_obj import setUp, tearDown
 db = SQLAlchemy()
 
-
+#system = None
 # Abstract class to hold common methods
 class Entity(db.Model):
 
@@ -73,6 +72,7 @@ class Entity(db.Model):
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
 # -*- coding: utf-8 -*-
 
+
 import unittest
 from flask.ext.testing import TestCase
 from datetime import datetime
@@ -81,6 +81,7 @@ from datetime import datetime
 from src.db import *
 from src.app import create_app
 from src.op_exceptions import AttributeRequired
+
 
 config = {
     'SQLALCHEMY_DATABASE_URI': ''
@@ -250,10 +251,12 @@ class TestName(TestCase):
 
     def setUp(self):
         db.create_all()
+        #setUp()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        #tearDown()
 
     def test_name_type(self):
         print "test_name_type"
@@ -297,10 +300,12 @@ class TestEmail(TestCase):
 
     def setUp(self):
         db.create_all()
+        #setUp()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        #tearDown()
 
     def test_email_type(self):
         print "test_email_type"
@@ -383,23 +388,29 @@ class TestUser(TestCase):
 
     def setUp(self):
         db.create_all()
+        #a_role = Role("admin")
+        #u_role = Role("user")
+        #a_role.save()
+        #u_role.save()
+        setUp()
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        #db.session.remove()
+        #db.drop_all()
+        tearDown()
 
     def test_user_creation_without_role(self):
         print "test_user_creation_without_role"
         with self.assertRaises(AttributeRequired):
-            user = User(name=Name("Robin Smith"), 
-                            email=Email("smith@gmail.com"))
+            user = User(name="Robin Smith", 
+                            email="smith@gmail.com")
 
     def test_user_creation_with_role(self):
         print "test_user_creation_with_role"
-        role = Role(name=Name("admin"))
-        role.save()
-        user = User(name=Name("Robin Smith"), 
-                    email=Email("smith@gmail.com"),
+        #role = Role("admin")
+        #role.save()
+        user = User(name="Robin Smith", 
+                    email="smith@gmail.com",
                     role=Role.get_by_id(1))
         user.save()
         self.assertEqual(user.role.name, "admin")   
@@ -409,8 +420,7 @@ class TestUser(TestCase):
 *** Functions
 
 
-**** setRole User, Role ---> NIL
-
+**** setRole
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def set_role(self, role):
@@ -422,49 +432,42 @@ class TestUser(TestCase):
 
 ***** Test setRole to a user 
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_set_toles_to_user(self):
-        print "test_set_toles_to_user"
-        role = Role(name=Name("admin"))
-        role.save()
-        user = User(name=Name("Robin Smith"), 
-                    email=Email("smith@gmail.com"),
+    def test_set_roles_to_user(self):
+        print "test_set_roles_to_user"
+        #a_role = Role("admin")
+        #role.save()
+        user = User(name="Robin Smith", 
+                    email="smith@gmail.com",
                     role=Role.get_by_id(1))
         user.save()
-        role = Role(name=Name("user"))
-        user.set_role(role)
+        #role = Role("user")
+        #role.sa
+        user.set_role(Role.get_by_id(2))
         user.save()
         users = User.get_all()
-        self.assertEqual(users[0].role.name, "user")
+        self.assertEqual(users[1].role.name, "user")
 #+END_SRC
 
 
 **** setEmail
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def set_email(self, email):
-        if not isinstance(email, Email):
-            raise TypeError('`email` argument should be of type Email.')
+        if not is_email(email):
+            raise TypeError('email is invalid')
         else:
-            self.email = email.value
+            self.email = email
 #+END_SRC
 
 
 **** setName
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def set_name(self, name):
-        if not isinstance(name, Name):
-            raise TypeError('`name` argument should be of type Name.')
+        if not is_alphabetic_string(name):
+            raise TypeError('Invalid name')
         else:
-            self.name = name.value
+            self.name = name
 #+END_SRC
 
-**** setRole
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def set_role(self, role):
-        if not isinstance(role, Role):
-            raise TypeError('`role` argument should be of type Role.')
-        else:
-            self.role = role
-#+END_SRC
 
 
 **** getEmail
@@ -495,14 +498,14 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
     def test_user_get_all(self):
         print "test_user_get_all"
-        role = Role(name=Name("Admin"))
-        role.save()
-        user = User(name=Name("Termite"), 
-                    email=Email("tremite@gmail.com"),
-                    role=role)
+        #role = Role("Admin")
+        #role.save()
+        user = User(name="Termite", 
+                    email="tremite@gmail.com",
+                    role=Role.get_by_id(1))
         user.save()
         users = User.get_all()
-        self.assertEqual("Admin", users[0].role.name)
+        self.assertEqual("admin", users[0].role.name)
 #+END_SRC
 
 
@@ -520,30 +523,36 @@ class TestUser(TestCase):
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
     def test_get_user_by_id(self):
         print "test_get_user_by_id"
-        user = User(name=Name("Robin Smith"), 
-                    email=Email("smith@gmail.com"),
-                    role=Role(name=Name("admin")))
+        #role = Role("admin")
+        #role.save()
+        user = User(name="Robin Smith", 
+                    email="smith@gmail.com",
+                    role=Role.get_by_id(1))
         user.save()
-        self.assertEqual(user.get_by_id(1).role.name, "admin")
-        self.assertEqual(user.get_by_id(1).name, "Robin Smith")
+        self.assertEqual(user.get_by_id(2).role.name, "admin")
+        self.assertEqual(user.get_by_id(2).name, "Robin Smith")
 #+END_SRC
 
 ***** Test updateRole: Role -> Role
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
     def test_update_user(self):
         print "test_update_role"
-        user = User(name=Name("Robin Smith"), 
-                    email=Email("smith@gmail.com"),
-                    role=Role(name=Name("admin")))
+        #a_role = Role("admin")
+        #a_role.save()
+        user = User(name="Robin Smith", 
+                    email="smith@gmail.com",
+                    role=Role.get_by_id(1))
         user.save()
         u1 = User.get_by_id(1)
         print u1.to_client()
-        u1.update(name=Name("Duddley Rod"), 
-                  email=Email("duddley@gmail.com"),
-                  role=Role(name=Name("owner")))
+        #u_role = Role("user")
+        #u_role.save()
+        u1.update(name="Duddley Rod", 
+                  email="duddley@gmail.com",
+                  role=Role.get_by_id(2))
         print u1.to_client()
         self.assertEqual(u1.get_by_id(1).name, "Duddley Rod")
-        self.assertEqual(u1.get_by_id(1).role.name, "owner")
+        self.assertEqual(u1.get_by_id(1).role.name, "user")
 #+END_SRC
 
 
@@ -608,11 +617,11 @@ class Role(Entity):
     #+END_EXAMPLE
 
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def __init__(self, **kwargs):
-        if 'name' not in kwargs:
-            raise AttributeRequired("name is mandatory")
+    def __init__(self, name):
+        self.name = name
 
-        self.set_name(kwargs['name'])
+    def __str__(self):
+        return self.name
 #+END_SRC
 
 
@@ -627,91 +636,22 @@ class TestRole(TestCase):
 
     def setUp(self):
         db.create_all()
+        #setUp()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-
+        #tearDown()
+        
     def test_role_creation(self):
         print "test_role_creation"
-        role = Role(name=Name("admin"))
+        role = Role("admin")
         role.save()
         self.assertEqual(role.name, "admin")
 #+END_SRC
 
 
 *** Functions
-
-**** setName
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def set_name(self, name):
-        if not isinstance(name, Name):
-            raise TypeError('`name` argument should be of type Name.')
-        else:
-            self.name = name.value
-#+END_SRC
-
-****** Test
-#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_role_set_name(self):
-        print "test_role_set_name"
-        role = Role(name=Name("admin"))
-        role.save()
-        role.set_name(Name("owner"))
-        role.save()
-        role = Role.get_by_id(1)
-        self.assertEqual(role.name, "owner")
-#+END_SRC
-
-
-**** setUsers Role, Users ---> NIL
-
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def set_users(self, users):
-        type_error = False
-        for user in users:
-            if not isinstance(user, User):
-                type_error = True
-                break
-
-        if not type_error:
-            self.users = users
-        else:
-            raise TypeError('`user` argument should be of type User.')
-#+END_SRC
-
-***** Test setUsers to a role
-#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_set_users_to_role(self):
-        print "test_set_users_to_role"
-#+END_SRC
-
-
-**** getName
-
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def get_name(self):
-        return self.name
-#+END_SRC
-
-
-**** getUsers Role ---> set of Users
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def get_users(self):
-        return self.users
-#+END_SRC
-
-
-**** getId
-
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    def get_id(self):
-        return self.id
-#+END_SRC
-
-
 **** getById : id --> Role
 
 ***** Implementation
@@ -721,49 +661,6 @@ class TestRole(TestCase):
         return Role.query.get(id)
 #+END_SRC
 
-
-***** Test getById: Id --> Role
- #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_get_role_by_id(self):
-        print "test_get_role_by_id"
-        role = Role(name=Name("Admin"))
-        role.save()
-        self.assertEqual(role.get_by_id(1).name, "Admin")
-
- #+END_SRC
-
-
-***** Test updateRole: Role -> Role
-#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_update_role(self):
-        print "test_update_role"
-        role = Role(name=Name("Admin"))
-        role.save()
-        rl = Role.get_by_id(1)
-        rl.update(name=Name("owner"))
-        self.assertEqual(rl.get_by_id(1).name, "owner")
-#+END_SRC
-
-
-**** getAll: Nil --> set[Role]
-
-***** Implementation
-#+BEGIN_SRC python :tangle ../../src/db.py :eval no
-    @staticmethod
-    def get_all():
-        return Role.query.all()
-#+END_SRC
-
-
-***** Test getAll: Nil --> set[Role]
- #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
-    def test_role_get_all(self):
-        print "test_role_get_all"
-        role = Role(name=Name("Admin"))
-        role.save()
-        roles = Role.get_all()
-        self.assertEqual("Admin", roles[0].name)
- #+END_SRC
 
 
 **** to_client
@@ -779,6 +676,105 @@ class TestRole(TestCase):
 
 
 
+
+** Session
+   
+*** Definition
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+class Session(object):
+    user = None
+    
+#+End_SRC
+
+*** Constructor
+**** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def __init__(self, **kwargs):
+        if 'user' not in kwargs:
+            raise AttributeRequired("user is mandatory")
+        else:
+            self._set_user(kwargs['user'])
+#+END_SRC
+
+*** Test constructor
+#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
+class TestSession(TestCase):
+    TESTING = True
+
+    def create_app(self):
+        app = create_app(config)
+        return app
+
+    def setUp(self):
+        db.create_all()
+        setUp()
+
+    def tearDown(self):
+        
+        tearDown()
+
+    def test_session_creation(self):
+        print "test_session_creation"
+        user = User(name="Robin Smith", 
+                    email="smith@gmail.com",
+                    role=Role.get_by_id(1))
+        session = Session(user=user)
+        self.assertEqual(session.user.role, Role.get_by_id(1))
+
+#+END_SRC
+
+*** Operations
+
+**** getUser
+     
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def get_user(self):
+        return self.user
+#+END_SRC
+
+***** Test case 
+#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
+    def test_get_user(self):
+        print "test_get_user"
+        user = User(name = "def", email = "def@gmail.com", role = Role.get_by_id(1))
+        session = Session(user = user)
+        new_user = session.get_user()
+        self.assertEquals(new_user, user)
+#+END_SRC
+    
+**** _set_user
+
+***** Implementation 
+
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def _set_user(self, user):
+        if not isinstance(user, User):
+            raise TypeError('`user` argument should be of type User.')
+        else:
+            self.user = user
+#+END_SRC
+
+***** Test
+#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
+    def test_set_user(self):
+        print "test_set_user"
+        user = User(name = "def", email = "def@gmail.com", role = Role.get_by_id(2))
+        session = Session(user = user)
+        session._set_user(user)
+        self.assertEquals(session.user, user)
+#+END_SRC
+    
+**** toClient
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def to_client(self):
+        return {
+            'session': self.user.to_client()
+        }
+#+END_SRC
+
+
 * Run Test Cases
  
 #+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
@@ -787,4 +783,54 @@ if __name__ == '__main__':
 #+END_SRC
 
 
+** Setup
 
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+#system = None
+
+def setUp():
+    #global system
+    db.create_all()
+    
+    
+    a_role = Role("admin")
+    u_role = Role("user")
+    a_role.save()
+    u_role.save()
+    admin_user = User(name="admin", 
+                          email="app-admin@vlabs.ac.in", 
+                          role=Role.get_by_id(1))
+    admin_user.save()       
+
+    
+
+    #if not system.user_set:
+    #    user = User(name = "admin",email = "app-admin@vlabs.ac.in",
+    #    role=Role.get_by_id(1))
+    #    #s = Session(user=user)
+    #    #system.session_set.append(s)
+    #    user.save()
+    #    system.user_set = User.get_all()
+    
+    #System.created = False
+    #system = System()
+    #print " *************SETUP****************"
+    #print system
+    #print " *************SETUP****************"
+    #global system
+    #system.user_set = User.get_all()
+    #print len(system.user_set)
+
+#+END_SRC
+
+** Teardown
+
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+def tearDown():
+    #global system
+    db.session.remove()
+    db.drop_all()
+
+    #system.user_set = []
+    #system.session_set = []
+#+END_SRC
