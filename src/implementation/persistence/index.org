@@ -28,7 +28,7 @@ import json
 
 from op_exceptions import AttributeRequired, ConstraintError, NotAuthorizedError
 from utils import *
-from tests.test_obj import setUp, tearDown
+
 db = SQLAlchemy()
 
 #system = None
@@ -1875,7 +1875,7 @@ class TestSystem(TestCase):
         admin_user = admin_users[0]
         admin_session = Session(user = admin_user)
         system.session_set.append(admin_session)
-        global system
+        #global system
         system.add_user(user,admin_session)
         system.add_session(user)
         check_session_set= system.show_sessions(admin_session)

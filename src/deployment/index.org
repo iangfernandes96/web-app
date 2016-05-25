@@ -45,15 +45,15 @@ import src.config as config
 
 
 def create_roles():
-    role1 = Role(name=Name("admin"))
+    role1 = Role("admin")
     role1.save()
 
-    role2 = Role(name=Name("user"))
+    role2 = Role("user")
     role2.save()
 
 def create_admin_user():
-    user = User(name=Name("Admin User"),
-                email=Email("xyz@gmail.com"),
+    user = User(name = "Admin User",
+                email="xyz@gmail.com",
                 role=Role.get_by_id(1))
     user.save()
 
