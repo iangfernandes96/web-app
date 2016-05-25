@@ -685,6 +685,15 @@ class TestRole(TestCase):
 
 
 *** Functions
+**** getALL
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    @staticmethod
+    def get_all():
+        return Role.query.all()
+#+END_SRC
+
+
 **** getById : id --> Role
 
 ***** Implementation
