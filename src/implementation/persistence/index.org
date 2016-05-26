@@ -858,7 +858,7 @@ class System(object):
             #self.session_set.append(s)
             #admin_user.save()
             self.session_set = []
-            self.user_set = User.get_all()
+            self.user_set = []
 
 #+END_SRC
 
@@ -1146,6 +1146,14 @@ class TestSystem(TestCase):
         #tearDown(system)
 
 #+END_SRC
+
+**** get_users_from_database
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def get_users_from_database(self):
+        self.user_set = User.get_all()
+
+#+END_SRC
+
 
 **** get_user_by_email
 ***** Implementation
