@@ -1532,6 +1532,34 @@ class TestSystem(TestCase):
         
 #+END_SRC
 
+
+**** set_name_of_user
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def set_name_of_user(self, user, name, session):
+        if session in self.session_set:
+            #check = filter(lambda x: x.email == email, self.user_set)
+            #if not check:
+            if user in self.user_set:
+                if session.user == user:
+                    user.set_name(name)
+                    user.update()
+                    self.user_set = User.get_all()
+                elif session.user.role == Role.get_by_id(1):
+                    user.set_name(name)
+                    user.update()
+                    self.user_set = User.get_all()
+                else:
+                    raise NotAuthroizedError("You don't have permission to change the email")
+            else:
+                    raise ConstraintError('User does not exist')
+        else:
+            raise ConstraintError("Invalid Session")
+
+#+END_SRC
+
+
+
 **** get_role_of_user
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no

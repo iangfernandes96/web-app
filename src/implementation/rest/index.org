@@ -154,11 +154,17 @@ def update_delete_user(id):
         print "throw error"
     else:
         print "Check according to your specification"
-        for s in system.session_set:
-            if s.user.email==request.json['session']:
-                session=s
-                        
+    for s in system.session_set:
+        if s.user.email==request.json['session']:
+            session=s
+     
+    #print request.json['session']
 
+    #admin_user = User.get_by_id(1)
+    #system.add_session(admin_user)
+    #session = system.session_set[0]
+                   
+    system.get_users_from_database()
     record = User.get_by_id(id)
     if not record:
         abort(404, 'No %s with id %s' % (user, id))
@@ -179,14 +185,17 @@ def update_delete_user(id):
         new_data = {}
         try:
             if 'name' in request.json:
-                new_data['name'] = request.json['name']
+                #new_data['name'] = request.json['name']
+                system.set_name_of_user(record, request.json['name'], session)
             if 'email' in request.json:
-                new_data['email'] = request.json['email']
+                #new_data['email'] = request.json['email']
+                system.set_email_of_user(record, request.json['email'], session)
             if 'role_id' in request.json:
                 role = Role.get_by_id(request.json['role_id'])
-                new_data['role'] = role
+                #new_data['role'] = role
 
-            record.update(**new_data)
+            record.role = role
+            record.update()
 
             return jsonify(User.get_by_id(id).to_client())
 
@@ -196,11 +205,15 @@ def update_delete_user(id):
             abort(500, str(e))
 
 #+END_SRC
-** Update a role
+** Update/Delete a role
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/roles/<int:id>', methods=['PUT', 'DELETE'])
 def update_delete_role(id):
 
+    if 'session' not in request.json:
+        abort(400)
+    else:
+        print "choose according to configuraton"
     record = Role.get_by_id(id)
     if not record:
         abort(404, 'No %s with id %s' % (role, id))
@@ -215,14 +228,12 @@ def update_delete_role(id):
             abort(500, str(e))
 
     if request.method == 'PUT':
-
-        new_data = {}
         try:
-            if 'name' in request.json:
-                new_data['name'] = request.json['name']
+            if 'role' in request.json:
+                record.role = request.json['role']
 
-            record.update(**new_data)
-            system.user_set = User.get_all()
+            record.update()
+            
             return jsonify(Role.get_by_id(id).to_client())
 
         except Exception, e:
@@ -231,27 +242,6 @@ def update_delete_role(id):
             abort(500, str(e))
 #+END_SRC
 
-** Delete a role
-**** Implementation
-#+BEGIN_SRC python :tangle ../../src/api.py :eval no
-@api.route('/roles/<int:id>', methods=['DELETE'])
-def delete_role(id):
-
-    record = Role.get_by_id(id)
-
-    if not record:
-        abort(404, 'No %s with id %s' % (role, id))
-
-    #if request.method == 'DELETE':
-    try:
-        record.delete()
-        return jsonify(id=id, status="success")
-    except Exception, e:
-        current_app.logger.error("Error occured while deleting "
-                                     "role record %d: %s" % (id, str(e)))
-        abort(500, str(e))
-
-#+END_SRC
 
 ** Get user by email
 **** Implementation
@@ -259,10 +249,17 @@ def delete_role(id):
 @api.route('/users/get_email', methods=['GET'])
 def get_user_by_email():
     global system
-    system.user_set = User.get_all()
+    system.get_users_from_database()
+
+    if 'email' not in request.json:
+        abort(400)
+    else:
+        print "choose according to configuraton"
     
+    record = None
+
     for x in system.user_set:
-        if x.email == email_check:
+        if x.email == request.json['email']:
             record = x
     
     if not record:
@@ -278,13 +275,31 @@ def get_user_by_email():
 @api.route('/users/<int:id>/email', methods=['GET'])
 def get_email_of_user(id):
     global system
+
+    session = None
+    system.get_users_from_database()
+    if 'session' not in request.json:
+        abort(400)
+    else:
+        print "choose according to configuraton"
+    
+
+    for s in system.session_set:
+        if s.user.email==request.json['session']:
+            session=s
+    record = User.get_by_id(id)         
+    if not record:
+        abort(404, 'No %s with id %s' % (user, id))
+
+        
+
     #if email_check == "email":
     #system.user_set = User.get_all()
-    record = User.get_by_id(id)
+    #record = User.get_by_id(id)
     new_data = {}
-    new_data['email'] = record.email        
-    if not record:
-        abort(404, "No entry for %s with id: %s found." % ("user", id))
+    new_data['email'] = system.get_email_of_user(record, session)        
+    #if not record:
+    #    abort(404, "No entry for %s with id: %s found." % ("user", id))
 
     return jsonify(new_data)
 
@@ -292,17 +307,37 @@ def get_email_of_user(id):
 
 ** Get name of user
 *** Implementation
+
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/users/<int:id>/name', methods=['GET'])
 def get_name_of_user(id):
     global system
-    #if name == "name":
-    #system.user_set = User.get_all()
-    record = User.get_by_id(id)
-    new_data = {}
-    new_data['name'] = record.name        
+
+    session = None
+    system.get_users_from_database()
+    if 'session' not in request.json:
+        abort(400)
+    else:
+        print "choose according to configuraton"
+    
+
+    for s in system.session_set:
+        if s.user.email==request.json['session']:
+            session=s
+    record = User.get_by_id(id)         
     if not record:
-        abort(404, "No entry for %s with id: %s found." % ("user", id))
+        abort(404, 'No %s with id %s' % (user, id))
+
+        
+
+    #if email_check == "email":
+    #system.user_set = User.get_all()
+    #record = User.get_by_id(id)
+    new_data = {}
+    new_data['name'] = system.get_name_of_user(record, session)        
+    #if not record:
+    #    abort(404, "No entry for %s with id: %s found." % ("user", id))
+
     return jsonify(new_data)
 
 #+END_SRC
@@ -316,8 +351,23 @@ def change_user_email(id):
 
     record = User.get_by_id(id)
     global system
+
+    system.get_users_from_database()
     if not record:
         abort(404, 'No %s with id %s' % (user, id))
+
+    session = None
+    #system.get_users_from_database()
+    if 'session' not in request.json:
+        abort(400)
+    else:
+        print "choose according to configuraton"
+    
+
+    for s in system.session_set:
+        if s.user.email==request.json['session']:
+            session=s
+    
 
 #    if request.method == 'DELETE':
 #        try:
@@ -333,7 +383,7 @@ def change_user_email(id):
     new_data = {}
     try:
             #if 'name' in request.json:
-        new_data['name'] = record.name
+        new_data['name'] = system.get_name_of_user(record, session)
         if 'email' in request.json:
             new_data['email'] = request.json['email']
             #if 'roles' in request.json:
@@ -341,10 +391,10 @@ def change_user_email(id):
             #    roles = []
             #    for role_id in role_ids:
             #        roles.append(Role.get_by_id(role_id))
-        new_data['role'] = record.role
+        new_data['role'] = system.get_role_of_user(record,session)
         #new_data['session'] = record.session
         record.update(**new_data)
-        system.user_set = User.get_all()
+        system.get_users_from_database()
         return jsonify(User.get_by_id(id).to_client())
 
     except Exception, e:
@@ -354,7 +404,7 @@ def change_user_email(id):
 #+END_SRC
 
 
-* Test API
+* Tests for REST API
 ** Initialization
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -376,6 +426,7 @@ config = {
 #+END_SRC
 
 ** User Tests
+*** Initialization
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 class TestUser(TestCase):
 
@@ -391,6 +442,13 @@ class TestUser(TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+
+#+END_SRC
+
+
+*** test_get_all_users
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
     def test_get_all_users(self):
         print "test_get_all_users"
@@ -411,6 +469,13 @@ class TestUser(TestCase):
         r = self.client.get('/users')
         result = json.loads(r.data)
         self.assertEquals(len(result), 2)
+
+#+END_SRC
+
+*** test_get_one_user
+**** Implementation
+
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
     def test_get_one_user(self):
         print "test_get_one_user"
@@ -434,6 +499,14 @@ class TestUser(TestCase):
         result = json.loads(r.data)
         self.assertEqual(result['name'], "admin user")
 
+#+END_SRC
+
+*** test_update_existing_user
+**** Implementation
+
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+
     def test_update_existing_user(self):
         # Create a user
         # update the same user
@@ -455,10 +528,14 @@ class TestUser(TestCase):
 
         user2.save()
 
+        system.user_set = []
+        system.session_set = []
+
+        system.get_users_from_database()
         admin_user = User.get_by_id(1)
         admin_session = Session(user = admin_user)
         system.session_set.append(admin_session)
-
+        
         
         #for x in system.session_set:
         #    print x.to_client()
@@ -473,6 +550,14 @@ class TestUser(TestCase):
                                    headers=headers)
 
         self.assertEqual(response.status_code, 200)
+
+#+END_SRC
+
+*** test_create_new_user
+**** Implementation
+
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
 
     def test_create_new_user(self):
         print "test_create_new_user"
@@ -505,6 +590,13 @@ class TestUser(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+
+#+END_SRC
+
+*** test_delete_user
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
     def test_delete_user(self):
         global system
         print "test_delete_user"
@@ -524,8 +616,12 @@ class TestUser(TestCase):
 
         user2.save()
         
-        s=Session(user=user1)
-        system.session_set.append(s)
+        system.session_set = []
+        system.user_set = []
+
+        system.get_users_from_database()
+        #s=Session(user=user1)
+        system.add_session(user1)
         payload = {'session': 'admin@xyz.com'}
 
         headers = {'content-type': 'application/json'}
@@ -536,7 +632,294 @@ class TestUser(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+
+#+END_SRC
+
+*** test_create_role
+**** Implementation
+
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_create_role(self):
+        print "test_create_role"
+        #role1 = Role("admin")
+        #role1.save()
+        #role2 = Role("user")
+        #role2.save()
+
+        #user1 = User(name = "admin user",
+        #             email= "admin@xyz.com",
+        #             role=role1)
+
+        #user1.save()
+        #user2 = User(name="normal user",
+        #             email="normal@xyz.com",
+        #             role=role2)
+
+        #user2.save()
+
+        payload = {'name': 'owner'}
+
+        headers = {'content-type': 'application/json'}
+
+        response = self.client.post("/roles",
+                                    data=json.dumps(payload),
+                                    headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+
+
 #+END_SRC 
+
+*** test_update_role
+**** Implementation
+
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+
+    def test_update_role(self):
+        # Create a user
+        # update the same user
+        global system
+        print "test_update_role"
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+
+        user1 = User(name="admin user",
+                     email="admin@xyz.com",
+                     role=role1)
+
+        user1.save()
+        system.get_users_from_database()
+        s=Session(user=user1)
+        system.add_session(user1)
+        #payload = {'session': 'admin@xyz.com'}
+        #user1 = User(name="admin user",
+        #             email="admin@xyz.com",
+        #             role=role1)
+
+        #user1.save()
+        #user2 = User(name="normal user",
+        #             email="normal@xyz.com",
+        #             role=role2)
+
+        #user2.save()
+
+        #admin_user = User.get_by_id(1)
+        #admin_session = Session(user = admin_user)
+        #system.session_set.append(admin_session)
+        #system.get_users_from_database()
+        
+        #for x in system.session_set:
+        #    print x.to_client()
+
+        payload = {'role': 'owner',
+                   'session' : 'admin@xyz.com'
+                   }
+        headers = {'content-type': 'application/json'}
+        response = self.client.put("/roles/2",
+                                   data=json.dumps(payload),
+                                   headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+
+#+END_SRC
+
+*** test_delete_role
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_delete_role(self):
+        global system
+        print "test_delete_role"
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+
+        user1 = User(name="admin user",
+                     email="admin@xyz.com",
+                     role=role1)
+
+        user1.save()
+        system.get_users_from_database()
+        #user2 = User(name="normal user",
+        #             email="normal@xyz.com",
+        #             role=role2)
+
+        #user2.save()
+        
+        s=Session(user=user1)
+        system.add_session(user1)
+        payload = {'session': 'admin@xyz.com'}
+
+        headers = {'content-type': 'application/json'}
+
+        response = self.client.delete("/roles/2",
+                                      data=json.dumps(payload),
+                                      headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+
+
+#+END_SRC
+
+*** test_get_user_by_email
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_get_user_by_email(self):
+        print "test_get_user_by_email"
+
+        ###Create Users
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+        user1 = User(name = "admin user",
+                    email = "admin@xyz.com",
+                    role=role1)
+        user1.save()
+        user2 = User(name = "normal user",
+                    email="normal@xyz.com",
+                    role=role2)
+        user2.save()
+        
+        system.user_set = []
+        system.session_set = []
+
+        system.get_users_from_database()
+
+        payload = { 'email' : 'normal@xyz.com' }
+
+        
+        headers = {'content-type': 'application/json'}
+        response = self.client.get("/users/get_email",
+                                   data=json.dumps(payload),
+                                   headers=headers)
+        result = json.loads(response.data)
+        self.assertEquals(result['email'], user2.email)
+
+#+END_SRC
+
+
+*** test_get_email_of_user
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_get_email_of_user(self):
+        print "test_get_email_of_user"
+
+        ###Create Users
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+        user1 = User(name = "admin user",
+                    email = "admin@xyz.com",
+                    role=role1)
+        user1.save()
+        user2 = User(name = "normal user",
+                    email="normal@xyz.com",
+                    role=role2)
+        user2.save()
+        
+        system.user_set = []
+        system.session_set = []
+
+        system.get_users_from_database()
+        system.add_session(user1)
+        payload = { 'session' : 'admin@xyz.com' }
+
+        
+        headers = {'content-type': 'application/json'}
+        response = self.client.get("/users/2/email",
+                                   data=json.dumps(payload),
+                                   headers=headers)
+        result = json.loads(response.data)
+        self.assertEquals(result['email'], user2.email)
+
+#+END_SRC
+
+*** test_get_name_of_user
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_get_name_of_user(self):
+        print "test_get_name_of_user"
+
+        ###Create Users
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+        user1 = User(name = "admin user",
+                    email = "admin@xyz.com",
+                    role=role1)
+        user1.save()
+        user2 = User(name = "normal user",
+                    email="normal@xyz.com",
+                    role=role2)
+        user2.save()
+        
+        system.user_set = []
+        system.session_set = []
+
+        system.get_users_from_database()
+        system.add_session(user1)
+        payload = { 'session' : 'admin@xyz.com' }
+
+        
+        headers = {'content-type': 'application/json'}
+        response = self.client.get("/users/2/name",
+                                   data=json.dumps(payload),
+                                   headers=headers)
+        result = json.loads(response.data)
+        self.assertEquals(result['name'], user2.name)
+
+#+END_SRC
+
+
+*** test_set_email_of_user
+**** Implementation
+#+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
+
+    def test_set_email_of_user(self):
+        print "test_set_email_of_user"
+
+        ###Create Users
+        role1 = Role("admin")
+        role1.save()
+        role2 = Role("user")
+        role2.save()
+        user1 = User(name = "admin user",
+                    email = "admin@xyz.com",
+                    role=role1)
+        user1.save()
+        user2 = User(name = "normal user",
+                    email="normal@xyz.com",
+                    role=role2)
+        user2.save()
+        
+        system.user_set = []
+        system.session_set = []
+
+        system.get_users_from_database()
+        system.add_session(user1)
+        payload = { 'session' : 'admin@xyz.com',
+                    'email' : 'abcd@xyz.com'
+                    }
+        
+        headers = {'content-type': 'application/json'}
+        response = self.client.put("/users/2/email",
+                                   data=json.dumps(payload),
+                                   headers=headers)
+        result = json.loads(response.data)
+        self.assertEquals(result['email'], "abcd@xyz.com")
+
+#+END_SRC
 
 
 ** Run Tests
