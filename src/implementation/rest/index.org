@@ -154,10 +154,15 @@ def update_delete_user(id):
         print "throw error"
     else:
         print "Check according to your specification"
+
+    print system.session_set
+    for x in system.session_set:
+        print x.user.email
     for s in system.session_set:
         if s.user.email==request.json['session']:
             session=s
-     
+    
+    print session.user.email
     #print request.json['session']
 
     #admin_user = User.get_by_id(1)
@@ -434,6 +439,7 @@ def login():
                     current_app.logger.info("Successfully Logged in")
                     session['email'] = str(user_list[user]['email'])
                     session['role_name'] = str(user_list[user]['role']['name'])
+                    session['user_id'] = str(user_list[user]['id'])
                     for u in system.user_set:
                         if u.email==str(email):
                            user=u

@@ -84,6 +84,10 @@ app.config(function($routeProvider){
     .when('/add-user',{
       templateUrl : '/static/partials/add-user.html',
       controller  : 'add-user'
+    })
+    .when('/edit-user/:id', {
+      templateUrl : '/static/partials/edit-user.html',
+      controller  : 'edit-user'
     });
 
 });
@@ -97,6 +101,7 @@ app.config(function($routeProvider){
 var app = angular.module('directoryApp.controllers',[]);
 app.controller("users", function($scope,  $http, $routeParams, $route,$window){
     $scope.role_name = $window.role_name;
+    $scope.session_email = $window.session_email;
     $http.get("http://localhost:5000/users").success(function(response){
 	$scope.users = response;
     });
@@ -105,6 +110,9 @@ app.controller("users", function($scope,  $http, $routeParams, $route,$window){
 
 app.controller("view-users", function($scope,  $http, $routeParams, $route,$window){
     $scope.role_name = $window.role_name;
+    //alert($window.user_id);
+    $scope.user_id = $window.user_id;
+    $scope.session_email = $window.session_email;
     $http.get("http://localhost:5000/users/" + $routeParams.id).success(function(response){
 	$scope.users = response;
     });
@@ -114,7 +122,7 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$window){
     $scope.role_name=$window.role_name;
     $scope.session_email=$window.session_email;
-    $scope.myText="you haven't clicked submit yet"
+    $scope.myText="you haven't clicked submit yet";
     $scope.add_user=function(){
        
        var data={
@@ -129,6 +137,35 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             $http.post("http://localhost:5000/users",data).success(function(reponse){
             $scope.PostDataResponse=data;
             $scope.myText="You added successfully"
+            }).error(function(response) {
+            $scope.ResponseDetails ="Data:" +data+
+            "<hr />status: " + status +
+            "<hr />headers: " + header +
+            "<hr />config: " + config;
+            });
+
+            };
+});
+
+
+app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$window){
+    $scope.role_name=$window.role_name;
+    $scope.session_email=$window.session_email;
+    $scope.myText="you haven't clicked submit yet"
+    $scope.edit_user=function(){
+       
+       var data={
+            name:$scope.name,
+            email:$scope.email,
+            role_id:$scope.role,
+            session: $scope.session_email
+            };
+            console.log((data))
+            console.log(typeof data)
+            
+            $http.put("http://localhost:5000/users/" + $routeParams.id ,data).success(function(reponse){
+            $scope.PostDataResponse=data;
+            $scope.myText="You edited successfully";
             }).error(function(response) {
             $scope.ResponseDetails ="Data:" +data+
             "<hr />status: " + status +

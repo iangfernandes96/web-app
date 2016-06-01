@@ -1432,20 +1432,24 @@ class TestSystem(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def set_email_of_user(self, user, email, session):
+        #global system
+        #print self.session_set
+        #for x in self.session_set:
+        #    print x.user.email
         if session in self.session_set:
             check = filter(lambda x: x.email == email, self.user_set)
             if not check:
                 if user in self.user_set:
-                    if session.user == user:
+                    if session.user.role.name == "admin":
                         user.set_email(email)
                         user.update()
                         self.user_set = User.get_all()
-                    elif session.user.role == Role.get_by_id(1):
+                    elif session.user.email == user.email:
                         user.set_email(email)
                         user.update()
                         self.user_set = User.get_all()
                     else:
-                        raise NotAuthroizedError("You don't have permission to change the email")
+                        raise NotAuthorizedError("You don't have permission to change the email")
                 else:
                     raise ConstraintError('User does not exist')
             else:
@@ -1537,22 +1541,26 @@ class TestSystem(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def set_name_of_user(self, user, name, session):
+        #global system
+        #print self.session_set
+        #for x in self.session_set:
+        #    print x.user.email
         if session in self.session_set:
             #check = filter(lambda x: x.email == email, self.user_set)
             #if not check:
             if user in self.user_set:
-                if session.user == user:
+                if session.user.role.name == "admin":
                     user.set_name(name)
                     user.update()
                     self.user_set = User.get_all()
-                elif session.user.role == Role.get_by_id(1):
+                elif session.user.email == user.email:
                     user.set_name(name)
                     user.update()
                     self.user_set = User.get_all()
                 else:
-                    raise NotAuthroizedError("You don't have permission to change the email")
+                    raise NotAuthorizedError("You don't have permission to change the name")
             else:
-                    raise ConstraintError('User does not exist')
+                raise ConstraintError('User does not exist')
         else:
             raise ConstraintError("Invalid Session")
 
