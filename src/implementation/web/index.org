@@ -113,7 +113,7 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 
 app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$window){
     $scope.role_name=$window.role_name;
-    $scope.session_email=$window.email;
+    $scope.session_email=$window.session_email;
     $scope.myText="you haven't clicked submit yet"
     $scope.add_user=function(){
        
@@ -121,7 +121,7 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             name:$scope.name,
             email:$scope.email,
             role:$scope.role,
-            session:"xyz@gmail.com"
+            session: $scope.session_email
             };
             console.log((data))
             console.log(typeof data)
@@ -137,7 +137,7 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             });
 
             };
-            });
+});
     
 
 
