@@ -21,9 +21,22 @@
 	</span>
       </p>
       <p>
+      <p>Role id:<br>
+	<input type="number" name="role" ng-pattern="/^(1|2)$/" class="form-control"  ng-model="role" required>
+	<span style="color:red" ng-show="myForm.role.$dirty && myForm.role.$invalid">
+	  <span ng-show="myForm.role.$error.required">Role is required.</span>
+	  <span ng-show="myForm.role.$error.pattern">Enter valid role-id</span>
+	</span>
+      </p>
+      <p>
 	<input type="submit" value="Save" class="btn btn-primary"  ng-disabled="myForm.$invalid">
 	<a href="#/">Cancel</a>
       </p>
+    </form>
+    {{ myText }}
+  </div>
+  <div class="col-md-4"></div>
+</div>
     </form>
   </div>
   <div class="col-md-4"></div>

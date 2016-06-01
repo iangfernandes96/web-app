@@ -417,7 +417,8 @@ def index():
 
 @api.route("/auth/login", methods=['GET', 'POST'])
 def login():
-
+    global system
+    user=None
     if request.method == 'POST':
         email = str(request.form['email'])
         url_for_getting_the_user = "%s/users" % \
@@ -431,8 +432,15 @@ def login():
                 print user_list[user]
                 if str(email) == str(user_list[user]['email']):
                     current_app.logger.info("Successfully Logged in")
-                    session['email'] = email
+                    session['email'] = str(user_list[user]['email'])
                     session['role_name'] = str(user_list[user]['role']['name'])
+                    for u in system.user_set:
+                        if u.email==str(email):
+                           user=u
+                    system.login(user)
+                    print system.session_set
+                    for x in system.session_set:
+                        print x.user.email
                     return redirect("/")
                 else:
                     count = count + 1
@@ -441,8 +449,20 @@ def login():
             
 @api.route('/auth/logout', methods=['GET'])
 def logout_handler():
+    global system
+    
+    
+    user=None
+    ses=None
+    for s in system.session_set:
+        if(s.user.email == session['email'] ):
+            ses=s
+    for u in system.user_set:
+        if(u.email == session['email']):
+            user=u
+    system.logout(user,ses)
     session.pop('email', None)
-    session.pop('role_name', None)
+    session.pop('role_name', None)   
     return redirect("/")
 
 #+END_SRC

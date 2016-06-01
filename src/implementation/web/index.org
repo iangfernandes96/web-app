@@ -80,6 +80,10 @@ app.config(function($routeProvider){
     .when('/view-user/:id', {
       templateUrl : '/static/partials/view-user.html',
       controller  : 'view-users'
+    })
+    .when('/add-user',{
+      templateUrl : '/static/partials/add-user.html',
+      controller  : 'add-user'
     });
 
 });
@@ -107,14 +111,41 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 
 });
 
+app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$window){
+    $scope.role_name=$window.role_name;
+    $scope.session_email=$window.email;
+    $scope.myText="you haven't clicked submit yet"
+    $scope.add_user=function(){
+       
+       var data={
+            name:$scope.name,
+            email:$scope.email,
+            role:$scope.role,
+            session:"xyz@gmail.com"
+            };
+            console.log((data))
+            console.log(typeof data)
+            
+            $http.post("http://localhost:5000/users",data).success(function(reponse){
+            $scope.PostDataResponse=data;
+            $scope.myText="You added successfully"
+            }).error(function(response) {
+            $scope.ResponseDetails ="Data:" +data+
+            "<hr />status: " + status +
+            "<hr />headers: " + header +
+            "<hr />config: " + config;
+            });
 
+            };
+            });
+    
 
 
 #+END_SRC
 *** View
 **** Users
 - =users.html=
-#+BEGIN_SRC javascript :tangle ../../src/static/partials/users.html :eval no
+#+BEGIN_SRC html :tangle ../../src/static/partials/users.html :eval no
 <div class="row">
   <div class="col-md-9"><h2>Users</h2></div>
   <div class="col-md-2" ng-if="role_name == 'admin'">
@@ -150,10 +181,10 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 
 **** View-user
 - =view-user.html=
-#+BEGIN_SRC javascript :tangle ../../src/static/partials/view-user.html :eval no
+#+BEGIN_SRC html :tangle ../../src/static/partials/view-user.html :eval no
 <div class="row">
   <div class="col-md-4"></div>
-  <div class="col-md-5"><h2>Details of <b>{{ name }}</b></h2></div>
+  <div class="col-md-5"><h2>Details of <b>{{ users.name }}</b></h2></div>
   <div class="col-md-3">
     <a onclick="history.back();" role="button" class="btn btn-success btn-large">Back</a>
   </div>
@@ -163,7 +194,7 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
     <div class="table-responsive">
       <table class="table table-stripped">
 	<thead>
-	  <tr>
+ 	  <tr>
             <th class="span3">Name</th>
 	    <th class="span7">Email-id</th>
 	    <th class="span2">Role</th>
@@ -202,7 +233,7 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 
 #+END_SRC
 **** Add-user
-#+BEGIN_SRC javascript :tangle ../../src/static/partials/add-user.html :eval no
+#+BEGIN_SRC html :tangle ../../src/static/partials/add-user.html :eval no
 <div class="row">
   <div class="col-md-4"></div>
   <div class="col-md-4">
@@ -223,6 +254,13 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 	<span style="color:red" ng-show="myForm.email.$dirty && myForm.email.$invalid">
 	  <span ng-show="myForm.email.$error.required">Email is required.</span>
 	  <span ng-show="myForm.email.$error.pattern">Enter valid email-id</span>
+	</span>
+      </p>
+      <p>Role id:<br>
+	<input type="number" name="role" ng-pattern="/^(1|2)$/" class="form-control"  ng-model="role" required>
+	<span style="color:red" ng-show="myForm.role.$dirty && myForm.role.$invalid">
+	  <span ng-show="myForm.role.$error.required">Role is required.</span>
+	  <span ng-show="myForm.role.$error.pattern">Enter valid role-id</span>
 	</span>
       </p>
       <p>
@@ -230,16 +268,14 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 	<a href="#/">Cancel</a>
       </p>
     </form>
+    <p>{{ myText }} </p>
   </div>
   <div class="col-md-4"></div>
 </div>
-
-
-
-
 #+END_SRC
 **** Edit-user
-#+BEGIN_SRC javascript :tangle ../../src/static/partials/edit-user.html :eval no
+
+#+BEGIN_SRC html :tangle ../../src/static/partials/edit-user.html :eval no
 
 <div class="row">
   <div class="col-md-4"></div>
@@ -262,10 +298,6 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 	  <span ng-show="myForm.email.$error.required">Email is required.</span>
 	  <span ng-show="myForm.email.$error.pattern">Enter valid email-id</span>
 	</span>
-      </p>
-      <p>
-	<input type="submit" value="Save" class="btn btn-primary"  ng-disabled="myForm.$invalid">
-	<a href="#/">Cancel</a>
       </p>
     </form>
   </div>
