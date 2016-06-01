@@ -991,8 +991,9 @@ class TestSystem(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def del_user(self, user, session):
+        print session.user.email
         if session in self.session_set:
-            if not session.user.role == Role.get_by_id(1):
+            if not session.user.role.name == "admin":
                 raise NotAuthorizedError("Only admin can remove users")
             else:
                 check = False
@@ -1006,7 +1007,7 @@ class TestSystem(TestCase):
                 else:
                     raise ConstraintError("User is still logged in")
         else:
-            raise ConstraintError("Invalid session")
+            raise ConstraintError("Invalid session!!!")
 
 #+END_SRC
 

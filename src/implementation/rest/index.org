@@ -150,19 +150,13 @@ def update_delete_user(id):
     global system
     session = None
     ### Check if there is a session and act according to the specification
-    if 'session' not in request.json:
-        print "throw error"
-    else:
-        print "Check according to your specification"
-
-    print system.session_set
-    for x in system.session_set:
-        print x.user.email
-    for s in system.session_set:
-        if s.user.email==request.json['session']:
-            session=s
+    #if 'session' not in request.json:
+    #    print "throw error"
+    #else:
+    #    print "Check according to your specification"
     
-    print session.user.email
+
+    
     #print request.json['session']
 
     #admin_user = User.get_by_id(1)
@@ -175,10 +169,15 @@ def update_delete_user(id):
         abort(404, 'No %s with id %s' % (user, id))
 
     if request.method == 'DELETE':
-
+    
+        delete_session_email= request.headers.get('session')
+        delete_session = None
+        for x in system.session_set:
+            if x.user.email == delete_session_email:
+                delete_session = x
         try:
             #record.delete()
-            system.del_user(record,session)
+            system.del_user(record,delete_session)
             return jsonify(id=id, status="success")
         except Exception, e:
             current_app.logger.error("Error occured while deleting"
@@ -186,7 +185,15 @@ def update_delete_user(id):
             abort(500, str(e))
 
     if request.method == 'PUT':
-
+    
+        print system.session_set
+        for x in system.session_set:
+            print x.user.email
+        for s in system.session_set:
+            if s.user.email==request.json['session']:
+                session=s
+    
+        print session.user.email
         new_data = {}
         try:
             if 'name' in request.json:

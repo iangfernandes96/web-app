@@ -116,6 +116,14 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
     $http.get("http://localhost:5000/users/" + $routeParams.id).success(function(response){
 	$scope.users = response;
     });
+    $scope.delete_user = function() {
+        alert("Delete function");
+        $http.delete("http://localhost:5000/users/" + $routeParams.id, {headers : {'session' : $window.session_email}}).success(function(response){
+        history.back();}).error(function(response){alert("error");
+        });
+            };
+
+
 
 });
 
@@ -136,7 +144,8 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             
             $http.post("http://localhost:5000/users",data).success(function(reponse){
             $scope.PostDataResponse=data;
-            $scope.myText="You added successfully"
+            $scope.myText="You added successfully";
+            history.back();
             }).error(function(response) {
             $scope.ResponseDetails ="Data:" +data+
             "<hr />status: " + status +
@@ -174,6 +183,8 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
             });
 
             };
+
+    
 });
     
 
