@@ -7,7 +7,6 @@
 #+options: ^:nil
 #+LATEX: Literal LaTeX code for export
 
-
 * Initialization
   
 ** Imports for Python API
@@ -161,6 +160,7 @@ class Name(object):
 
 
 *** Test the Construction
+   - We checked for both possible cases - valid name eg: John and invalid name eg:123dasd
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 class TestName(TestCase):
     TESTING = True
@@ -197,6 +197,10 @@ class Email(object):
 #+END_SRC
 
 *** Test the Construction
+    - The following test case checks for both the cases- valid email
+      eg : abc123@example.com and invalid email eg:ab@sff@.@com (which raises a Type
+      Error).
+
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 class TestEmail(TestCase):
     TESTING = True
@@ -220,7 +224,7 @@ class TestEmail(TestCase):
      + Role
 
 
-*** Definition
+*** Definition 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 class User():
     email = None
@@ -261,6 +265,12 @@ class User():
 
 
 **** Test the constructor
+     - Two test cases are written below -
+     i) Creating a user without role - raises Attribute Required exception
+     ii) A valid case - User created with name, email and a valid role.
+     
+     setUp() method creates all tables and tearDown() deletes all of them.They
+     are invoked before and after every test case respectively.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 class TestUser(TestCase):
     TESTING = True
@@ -531,6 +541,9 @@ class Session(object):
 #+END_SRC
 
 *** Test constructor
+    - test_session_creation() creates a User object  add a Session for him thus
+      tests the Session Constructor.
+
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 class TestSession(TestCase):
     TESTING = True
@@ -554,7 +567,7 @@ class TestSession(TestCase):
 *** Operations
 
 **** getUser
-     
+     - This method returns the user object from his respective Session.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_user(self):
@@ -562,6 +575,8 @@ class TestSession(TestCase):
 #+END_SRC
 
 ***** Test case 
+      - Creates a new User and a Session for him.Calls session.get_user() and
+        checks if the user that it returns is the same the new user.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_get_user(self):
         print "test_get_user"
@@ -572,7 +587,7 @@ class TestSession(TestCase):
 #+END_SRC
     
 **** _set_user
-
+     - This method attaches a user with his Session
 ***** Implementation 
 
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
@@ -584,6 +599,7 @@ class TestSession(TestCase):
 #+END_SRC
 
 ***** Test
+      - Tests set_user method of Session class.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_set_user(self):
         print "test_set_user"
@@ -594,6 +610,8 @@ class TestSession(TestCase):
 #+END_SRC
     
 **** toClient
+     - This method returns a dictionary with =key= - 'session' , =value= - user
+       dictionary.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def to_client(self):
@@ -604,9 +622,13 @@ class TestSession(TestCase):
 
 
 ** System
-
+   - This class maintains user_set (list of all users in the directory),
+   session_set (list of all sessions currently logged in) 
+   All the operations of the user directory web-app are defined here.
+   In the REST API every call is made using a system object.
 *** Definition and Constructor
-
+    - System Constructor ensures that only one System object can be created and
+      initializes user_set and session_set for the system object.
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 from sets import Set
 class System():
@@ -658,7 +680,7 @@ class TestSystem(TestCase):
 *** Operations
 
 **** add_user
-     
+     - add_user method ensures only an admin who is logged in can add an user.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def add_user(self, user,session):
@@ -673,6 +695,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      The following test case is written to test user creation(add_user)  by an admin.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 
     def test_add_user_session_admin(self):
@@ -686,8 +709,12 @@ class TestSystem(TestCase):
         system.add_user(user, admin_session)
         new_user_set_length = len(system.user_set)
         self.assertEquals( new_user_set_length, old_user_set_length + 1)
+#+END_SRC
 
-
+        The following test case tests user creation(add_user) by an =user= and
+        this is not permitted. This test case asserts that a NotAuthorized
+        error is raised for this case.
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_add_user_session_user(self):
         #global system
         print "test_add_user_by_user"
@@ -702,8 +729,13 @@ class TestSystem(TestCase):
         global system
         with self.assertRaises(NotAuthorizedError):
             system.add_user(user, user_session)
+#+END_SRC
 
+       The following test case tests user creation(add_user) by an =admin= who
+       isn't logged into the system. This test case asserts that a Constraint
+       Error is raised for this particular case.
 
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_add_user_session_invalid(self):
         #global system
         print "test_add_user_session_invalid"
@@ -724,7 +756,9 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** del_user
-
+    - This method ensures that only admins who are logged in can delete other
+      users and not themselves.
+      Users who aren't logged in currently can be deleted by admins.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def del_user(self, user, session):
@@ -744,9 +778,9 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      - Test case for deletion of user by admin who is logged in
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-    #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
-
+   
     def test_delete_user_session_admin(self):
         #global system
         print "test_delete_user_by_admin"
@@ -759,8 +793,10 @@ class TestSystem(TestCase):
         system.del_user(user, admin_session)
         new_user_set_length = len(system.user_set)
         self.assertEquals( new_user_set_length, old_user_set_length )
+#+END_SRC
 
-
+      - Test case for deletion of user by an =user=
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_delete_user_session_user(self):
         global system
         print "test_add_user_by_user"
@@ -776,8 +812,10 @@ class TestSystem(TestCase):
         #global system
         with self.assertRaises(NotAuthorizedError):
             system.del_user(user, user_session)
+#+END_SRC
 
-
+       - Test case for deletion of user who is currently logged in.
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_delete_user_session_logged_in(self):
         global system
         print "test_delete_user_session_logged_in"
@@ -794,8 +832,10 @@ class TestSystem(TestCase):
         global system
         with self.assertRaises(ConstraintError):
             system.del_user(user, admin_session)
+#+END_SRC
 
-
+       - Test case for deletion of user by an admin who isn't logged in.
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_delete_user_session_invalid(self):
         global system
         print "test_delete_user_session_invalid"
@@ -813,12 +853,10 @@ class TestSystem(TestCase):
         with self.assertRaises(ConstraintError):
             system.add_user(user, session)
 
-
-
 #+END_SRC
     
 **** show_users
-     
+     - This method returns all the users in the user_set(user directory).
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def show_users(self,session):
@@ -830,6 +868,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      - Test case for show_users()
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 
     def test_show_users_valid(self):
@@ -844,8 +883,9 @@ class TestSystem(TestCase):
         
         check_user_set = system.show_users(current_session)
         self.assertEquals(check_user_set, system.user_set)
+#+END_SRC
 
-
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_show_users_invalid(self):
         print "test_show_users_invalid"
         global system
@@ -862,6 +902,9 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** get_user_by_email
+     This method takes in an email and session as a parameter.Checks if the
+     session is valid(that is if the user is logged in). It returns the user
+     with the corresponding email if the user exists in the user_set.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_user_by_email(self, email, session):
@@ -877,6 +920,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      Testing Get user when an existing email is passed.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_get_user_by_email_existing(self):
         print "test_get_user_by_email_existing"
@@ -888,8 +932,10 @@ class TestSystem(TestCase):
         
         user_check = system.get_user_by_email("abcdef@gmail.com",admin_session)
         self.assertEquals( user_check , user)
-
-    
+#+END_SRC
+        
+        Testing Get user when a non-existent email is passed.
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no    
     def test_get_user_by_email_non_existent(self):
         print "test_get_user_by_email_non_existent"
         user = User(name = "ancd", email = "ancd@gmail.com", role = Role.user)
@@ -899,8 +945,11 @@ class TestSystem(TestCase):
         system.login(user)
         with self.assertRaises(ConstraintError):
             email_check = system.get_user_by_email("abcbdbejf@gmail.com",admin_session)
-   
-    
+#+END_SRC 
+
+        Testing get_user_by_email when an invalid session is passed(that is
+        session not present in session_set)  
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no    
     def test_get_user_by_email_invalid_session(self):
         print "test_get_user_by_email_invalid_session"
         user = User(name = "abcd", email = "abcd@gmail.com", role = Role.user)
@@ -916,7 +965,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** make_user
-
+     This method calls add_user.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
      
@@ -976,6 +1025,8 @@ class TestSystem(TestCase):
 
 #+END_SRC
 **** get_email_of_user
+     This method takes in user and session as parameter and returns the email
+     of the user.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_email_of_user(self, user, session):
@@ -1030,6 +1081,8 @@ class TestSystem(TestCase):
 #+END_SRC    
 
 **** get_name_of_user
+     This method takes in user and session as parameters and returns the name
+     of the user if he exists in user_set.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_name_of_user(self, user, session):
@@ -1087,6 +1140,11 @@ class TestSystem(TestCase):
 
 
 **** set_email_of_user
+     This method takes in user, email and session as parameters and sets email
+     of the user passed, only  if the session is valid and only if the session
+     is of an admin or if the user is editing himself.
+     This method also ensures that an existing email cannot be set again to an
+     other user.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def set_email_of_user(self, user, email, session):
@@ -1169,6 +1227,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** get_role_of_user
+     This method returns the role of the user passed in as parameter.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def get_role_of_user(self, user, session):
@@ -1185,6 +1244,8 @@ class TestSystem(TestCase):
 
 
 ***** Test
+      This test case checks the valid case, when the role of a user has to be
+      retrieved passing a current logged in session.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_get_role_of_user_valid(self):
         print "test_get_role_of_user_valid"
@@ -1197,8 +1258,11 @@ class TestSystem(TestCase):
         
         user_check = system.get_role_of_user(user, admin_session)
         self.assertEquals( user_check , user.role)
-
-    
+#+END_SRC
+  
+      This test case checks the invalid case, when the role of a user who does
+      not exist has to be retrieved passing a current logged in session.      
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no    
     def test_get_role_of_user_invalid_user(self):
         print "test_get_role_of_user_invalid_user"
         user = User(name = "ancd", email = "ancd@gmail.com", role = Role.user)
@@ -1208,10 +1272,12 @@ class TestSystem(TestCase):
         #system.login(user)
         with self.assertRaises(ConstraintError):
             email_check = system.get_role_of_user(user ,admin_session)
-   
-    
+#+END_SRC
+
+  
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no   
     def test_get_role_of_user_invalid_session(self):
-        print "test_get__of_user_invalid_session"
+        print "test_get_role_of_user_invalid_session"
         user = User(name = "abcd", email = "abcd@gmail.com", role = Role.user)
         admin_session_list = filter(lambda x: x.user.role == Role.admin, system.session_set)
         admin_session = admin_session_list[0]
@@ -1224,9 +1290,8 @@ class TestSystem(TestCase):
 #+END_SRC    
 
 
-
-
 **** login
+     This method adds a user to the session_set 
 
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
@@ -1239,6 +1304,7 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      Test case(valid case) for a existing user login.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 
     def test_login_valid(self):
@@ -1254,8 +1320,10 @@ class TestSystem(TestCase):
         system.login(user)
         new_session_set_length = len(system.session_set)
         self.assertEquals(old_session_set_length + 1, new_session_set_length)
-
-
+#+END_SRC
+        Test case when an non-existing user login in. (invalid case)
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no      
+      
     def test_login_invalid(self):
         print "test_login_invalid"
         global system
@@ -1270,7 +1338,7 @@ class TestSystem(TestCase):
 
 
 **** logout
-
+     This method removes a user from the session_set.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 
@@ -1287,6 +1355,8 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      test_logout_valid tests for the valid case when a user whose session
+      exists in the session set logs out.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 
     def test_logout_valid(self):
@@ -1306,7 +1376,11 @@ class TestSystem(TestCase):
         system.logout(user, user_session)
         new_session_set_length = len(system.session_set)
         self.assertEquals(old_session_set_length , new_session_set_length)
+#+END_SRC
 
+      test_logout_invalid_user tests for the invalid case when a user whose
+      session does not exist in the session set logs out.
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_logout_invalid_user(self):
         print "test_logout_invalid_user"
         global system
@@ -1326,7 +1400,10 @@ class TestSystem(TestCase):
         #self.assertEquals(old_session_set_length , new_session_set_length)
         with self.assertRaises(ConstraintError):
             system.logout(user, admin_session)
+#+END_SRC
 
+
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_logout_invalid_session(self):
         print "test_logout_invalid_session"
         global system
@@ -1351,7 +1428,8 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** add_session
-
+     This method takes in user object as a parameter and if he exists in the
+     user_set adds him to the session set.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 
@@ -1366,6 +1444,9 @@ class TestSystem(TestCase):
 #+END_SRC
 
 ***** Test
+      The following test case asserts if after adding a valid user, the
+      new_session_set's length is one greater than the old_session_set's
+      length.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_add_session(self):
         print "test_add_session"
@@ -1384,7 +1465,8 @@ class TestSystem(TestCase):
 #+END_SRC
 
 **** del_session
-
+     This method takes in user and session as parameter and deletes the session
+     of the user passed. 
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def del_session(self, user, session):
@@ -1454,7 +1536,8 @@ class TestSystem(TestCase):
     
 #+END_SRC
 **** show_sessions
-     
+     This method lists all the sessions in the session_set and only admin is
+     authorized to view all sessions.
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
     def show_sessions(self, session):
@@ -1468,6 +1551,8 @@ system = System()
 
 
 ***** Test
+      This test case checks the valid case when the session of an admin who is logged in
+      passed as parameter to show_sessions.
 #+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
 
     def test_show_sessions_admin(self):
@@ -1484,8 +1569,12 @@ system = System()
         system.add_session(user)
         check_session_set= system.show_sessions(admin_session)
         self.assertEquals(check_session_set, system.session_set)
-        
+#+END_SRC
 
+      This test case checks the invalid case when the session of a user who is logged in
+      passed as parameter to show_sessions.
+       
+#+BEGIN_SRC python :tangle ../../tests/test_obj.py :eval no
     def test_show_sessions_user(self):
         print "test_show_sessions_user"
         global system
@@ -1514,9 +1603,9 @@ if __name__ == '__main__':
 #+END_SRC
 
 ** Setup
-
+   - setUp method creates a new admin and adds him to the session_set and the
+     user set of the system object
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
-
 
 def setUp():
     global system
@@ -1531,7 +1620,7 @@ def setUp():
 #+END_SRC
 
 ** Teardown
-
+    - tearDown clears the session_set and the users_set of the system object
 #+BEGIN_SRC python :tangle ../../src/obj.py :eval no
 def tearDown():
     global system
