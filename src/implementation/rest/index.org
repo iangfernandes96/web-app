@@ -202,7 +202,9 @@ def update_user(id):
     for s in system.session_set:
         if s.user.email==request.json['session']:
             session=s
-    
+
+    role = system.get_role_of_user(record,session)
+            
     print session.user.email
     new_data = {}
     try:

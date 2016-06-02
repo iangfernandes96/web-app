@@ -20,6 +20,7 @@
 	  <span ng-show="myForm.email.$error.pattern">Enter valid email-id</span>
 	</span>
       </p>
+      <span ng-if="role_name == 'admin'">
       <p>Role:<br>
 	<input type="number" name="role" ng-pattern="/^(1|2)$/" class="form-control"  ng-model="role" required>
 	<span style="color:red" ng-show="myForm.email.$dirty && myForm.email.$invalid">
@@ -27,6 +28,7 @@
 	  <span ng-show="myForm.role.$error.pattern">Enter valid role-id</span>
 	</span>
       </p>
+      </span>
       <p> {{ myText }} </p>
       <p>
 	<input type="submit" value="Save" class="btn btn-primary"  ng-disabled="myForm.$invalid">
