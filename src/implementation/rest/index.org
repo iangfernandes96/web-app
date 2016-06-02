@@ -190,7 +190,7 @@ def create_role():
 @api.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     global system
-    session = None
+    user_session = None
                    
     system.get_users_from_database()
     record = User.get_by_id(id)
@@ -201,23 +201,31 @@ def update_user(id):
     
     for s in system.session_set:
         if s.user.email==request.json['session']:
-            session=s
+            user_session=s
 
-    role = system.get_role_of_user(record,session)
+    role = system.get_role_of_user(record,user_session)
             
-    print session.user.email
+    print user_session.user.email
     new_data = {}
     try:
+        system.logout(record,user_session)
         if 'name' in request.json:
-            system.set_name_of_user(record, request.json['name'], session)
+            system.set_name_of_user(record, request.json['name'], user_session)
         if 'email' in request.json:
-            system.set_email_of_user(record, request.json['email'], session)
+            system.set_email_of_user(record, request.json['email'], user_session)
         if 'role_id' in request.json:
             role = Role.get_by_id(request.json['role_id'])
         
         record.role = role
+        
         record.update()
-
+        system.get_users_from_database()
+        
+        
+        session['role_name'] = record.role.name
+        #session['user_id'] = record.id
+        session['email'] = record.email
+        system.login(record)
         return jsonify(User.get_by_id(id).to_client())
     except Exception, e:
         current_app.logger.error("Error occured while updating"
@@ -515,6 +523,7 @@ def logout_handler():
     
     user=None
     ses=None
+    system.get_users_from_database()
     for s in system.session_set:
         if(s.user.email == session['email'] ):
             ses=s
