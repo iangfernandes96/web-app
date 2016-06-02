@@ -1531,8 +1531,8 @@ class TestSystem(TestCase):
         system.add_user(user, admin_session)
         session = Session(user = user)
         
-        with self.assertRaises(ConstraintError):
-            email_check = system.set_email_of_user(user, "abcd@gmail.com", admin_session)
+        with self.assertRaises(TypeError):
+            email_check = system.set_email_of_user(user, "111", admin_session)
         #tearDown(system)
         
 #+END_SRC
