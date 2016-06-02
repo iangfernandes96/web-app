@@ -1439,7 +1439,7 @@ class TestSystem(TestCase):
         #    print x.user.email
         if session in self.session_set:
             check = filter(lambda x: x.email == email, self.user_set)
-            if not check:
+            if not check or user.email == email:
                 if user in self.user_set:
                     if session.user.role.name == "admin":
                         user.set_email(email)
