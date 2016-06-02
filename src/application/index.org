@@ -39,7 +39,7 @@ print "test package"
 # postgresql+psycopg2://scott:tiger@localhost/mydatabase
 #SQLALCHEMY_DATABASE_URI = 'mysql+oursql://<userid>:<password>@<servername>/<db_name>'
 # example
-SQLALCHEMY_DATABASE_URI = 'mysql+oursql://root:galvin1996qwerty@localhost/userdirectory'
+SQLALCHEMY_DATABASE_URI = 'mysql+oursql://<userid>:<password>@<servername>/<db_name>'
 
 # Debug from SQLAlchemy
 # Turn this to False on production
