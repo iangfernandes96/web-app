@@ -228,6 +228,7 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
             $http.put("http://localhost:5000/users/" + $routeParams.id ,data).success(function(reponse){
             $scope.PostDataResponse=data;
             $scope.myText="You edited successfully";
+            history.back();
             }).error(function(response) {
             $scope.ResponseDetails ="Data:" +data+
             "<hr />status: " + status +
