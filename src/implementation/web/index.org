@@ -104,7 +104,7 @@ app.controller("users", function($scope,  $http, $routeParams, $route,$window){
     $scope.session_email = $window.session_email;
     $http.get("http://localhost:5000/users").success(function(response){
 	$scope.users = response;
-    });
+    }).error(function(response){alert("Unable to display content.");
 
 });
 
@@ -115,11 +115,14 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
     $scope.session_email = $window.session_email;
     $http.get("http://localhost:5000/users/" + $routeParams.id).success(function(response){
 	$scope.users = response;
-    });
+    }).error(function(response){
+    alert("Unable to display the user.");
+
     $scope.delete_user = function() {
-        alert("Delete function");
+        //alert("Delete function");
         $http.delete("http://localhost:5000/users/" + $routeParams.id, {headers : {'session' : $window.session_email}}).success(function(response){
-        history.back();}).error(function(response){alert("error");
+        history.back();}).error(function(response){
+        alert("Unable to delete user.");
         });
             };
 
@@ -147,12 +150,14 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             $scope.myText="You added successfully";
             history.back();
             }).error(function(response) {
+            
             $scope.ResponseDetails ="Data:" +data+
             "<hr />status: " + status +
             "<hr />headers: " + header +
             "<hr />config: " + config;
+            alert("Unable to add user.");
             });
-
+            
             };
 });
 
@@ -180,6 +185,7 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
             "<hr />status: " + status +
             "<hr />headers: " + header +
             "<hr />config: " + config;
+            alert("Unable to edit user.");
             });
 
             };
