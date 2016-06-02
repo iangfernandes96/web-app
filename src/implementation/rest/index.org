@@ -203,22 +203,24 @@ def update_user(id):
         if s.user.email==request.json['session']:
             user_session=s
 
-    role = system.get_role_of_user(record,user_session)
+    role = record.role
             
     print user_session.user.email
     new_data = {}
     try:
-        system.logout(record,user_session)
+        
         if 'name' in request.json:
-            system.set_name_of_user(record, request.json['name'], user_session)
+            #system.set_name_of_user(record, request.json['name'], user_session)
+            new_data['name'] = request.json['name']
         if 'email' in request.json:
-            system.set_email_of_user(record, request.json['email'], user_session)
+            #system.set_email_of_user(record, request.json['email'], user_session)
+            new_data['email'] = request.json['email']
         if 'role_id' in request.json:
             role = Role.get_by_id(request.json['role_id'])
         
         record.role = role
-        
-        record.update()
+        system.logout(record,user_session)
+        record.update(**new_data)
         system.get_users_from_database()
         
         
@@ -690,7 +692,7 @@ class TestUser(TestCase):
                    'role_id': [1],
                    'session': 'admin@xyz.com'}
         headers = {'content-type': 'application/json'}
-        response = self.client.put("/users/2",
+        response = self.client.put("/users/1",
                                    data=json.dumps(payload),
                                    headers=headers)
 
