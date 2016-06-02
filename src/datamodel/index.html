@@ -3,12 +3,12 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-18 Wed 09:03 -->
+<!-- 2016-06-02 Thu 21:38 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Data Model for the Mini Version User Directory Application</title>
 <meta  name="generator" content="Org-mode" />
-<meta  name="author" content="Ian Galvin Fernandes VLEAD" />
+<meta  name="author" content="VLEAD VLEAD" />
 <style type="text/css">
  <!--/*--><![CDATA[/*><!--*/
   .title  { text-align: center;
@@ -259,6 +259,7 @@ for the JavaScript code in this tag.
 </ul>
 </div>
 </div>
+
 <div id="outline-container-orgheadline4" class="outline-2">
 <h2 id="orgheadline4"><span class="section-number-2">1</span> Notation</h2>
 <div class="outline-text-2" id="text-1">
@@ -398,10 +399,10 @@ user: Email &gt; User?
 <div class="org-src-container">
 
 <pre class="src src-spec">User
-Role
-Session
 Name
 Email
+Session
+Role
 </pre>
 </div>
 </div>
@@ -416,6 +417,10 @@ For each relation, we define its inverse next to it.
 <div class="org-src-container">
 
 <pre class="src src-spec">[email, user]  :  User?    &gt; Email!
+[name, user]   :  User     &gt; Name!
+[user, session]:  Session  &gt; User!
+[role,  user]:     User     &gt;Role!
+[session, user]:  User!    &gt;Session
 </pre>
 </div>
 </div>
@@ -495,21 +500,22 @@ state variables.
 
 <div class="org-src-container">
 
-<pre class="src src-spec">user-set : set[User] ; set of users in the system 
-session-set : set[Sessions] ; set of currently running sessions in the system #+END_SRC
+<pre class="src src-spec">user-set    : set[User]    ; set of users in the system
+session-set : set[Session] ; set of sessions in the system
 </pre>
 </div>
+
 <p>
 and five relations
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-spec"> email:      User &gt; Email!
- name:       User &gt; Name!
- role:       User &gt; Role!
- user:       Session &gt; User!
- session:    User &gt; Session*
+<pre class="src src-spec">email:      User &gt; Email!
+name :      User &gt; Name!
+role:       User &gt; Role!
+user:       Session &gt; User!
+session:    User! &gt; Session
 </pre>
 </div>
 </div>
@@ -537,8 +543,10 @@ and five relations
 <div class="org-src-container">
 
 <pre class="src src-spec">email-set   : set[Email]   = user-set.email        ; set of emails in the system
-name-set    : set[Name]    = user-set.name         ; set of names of users
-role-set    : set[Role]    = user-set.role         ; set of roles
+name-set    : set[Name]    = user-set.name         ; set of names in the system
+role-set    : set[Role]    = user-set.role         ; set of all roles of all users
+logged-in-user-set : set[User]   = session-set.user   
+logged-in-role-set :  set[Role]  = session-set.user.role
 </pre>
 </div>
 </div>
@@ -553,9 +561,9 @@ These specifications also capture referential integrity.
 <div class="org-src-container">
 
 <pre class="src src-spec">[email, user]    :  user-set!    &gt; email-set!
-[session, user]  :  user-set!    &gt; session-set*
-[user, role]     :  role!        &gt; user+
-[user, name]     :  name!        &gt; user*
+[name, users]    :  user-set+    &gt; name-set!    
+[role, users]    :  user-set+    &gt; role-set!   
+[role, session]  :  session-set  &gt;  role-set!
 </pre>
 </div>
 </div>
@@ -584,6 +592,7 @@ actor performing the operation.
 </ul>
 </div>
 
+
 <div id="outline-container-orgheadline14" class="outline-3">
 <h3 id="orgheadline14"><span class="section-number-3">6.1</span> Actor</h3>
 <div class="outline-text-3" id="text-6-1">
@@ -603,208 +612,251 @@ types of actors:  <code>system</code> and <code>session</code>.
 <col  class="org-left" />
 
 <col  class="org-left" />
+
+<col  class="org-left" />
 </colgroup>
 <thead>
 <tr>
 <th scope="col" class="org-left">Operation</th>
-<th scope="col" class="org-left">Actor Credentials</th>
-<th scope="col" class="org-left">Referential Integrity</th>
+<th scope="col" class="org-left">Actor</th>
+<th scope="col" class="org-left">Ref.</th>
 <th scope="col" class="org-left">Result</th>
+<th scope="col" class="org-left">&#xa0;</th>
 </tr>
 
 <tr>
 <th scope="col" class="org-left">&#xa0;</th>
-<th scope="col" class="org-left">&#xa0;</th>
+<th scope="col" class="org-left">Credentials</th>
+<th scope="col" class="org-left">Integrity</th>
 <th scope="col" class="org-left">&#xa0;</th>
 <th scope="col" class="org-left">&#xa0;</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="org-left">getRole(u:User, s:Session)</td>
-<td class="org-left">s.user.role=admin OR</td>
-<td class="org-left">s:sessionSet</td>
-<td class="org-left">Returns role of user</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">s.user.role=user</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">changeRole(u:User)</td>
+<td class="org-left">addUser(u:User, s:Session)</td>
 <td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
+<td class="org-left">u:~user-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">user-set increases</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">removeAdmin(u:User)</td>
+<td class="org-left">viewUsers(s:Session)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">createUser(e: Email, n:Name, s: Session)</td>
 <td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:adminSet</td>
-<td class="org-left">Success/Failure</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">e:~email-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">listOnlineUsers(u:User, s:Session)</td>
+<td class="org-left">deleteUsers( u:User, s:Session)</td>
 <td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Lists all online users</td>
+<td class="org-left">u:user-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">u.role!=admin</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">user-set decreases</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
+<td class="org-left">u:~logged-in-user-set</td>
+<td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">getUserByEmail(e:Email, s:Session)</td>
+<td class="org-left">getEmail(u: User, s:Session)</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
-<td class="org-left">Returns a specific user, if email is valid</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">viewUser(u:User, s:Session, e:Email)</td>
+<td class="org-left">u:user-set</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
-<td class="org-left">Allows to view a particular user, based</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">on email id</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">removeUser(u:User, s:Session)</td>
+<td class="org-left">getName(u: User,  s:Session)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">u:user-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">getRole(u: User, s:Session)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">u:user-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">editEmail(u: User, e:Email, s:Session)</td>
+<td class="org-left">s.user.role=admin or</td>
+<td class="org-left">u:user-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">s.user=u</td>
+<td class="org-left">s:session-set</td>
+<td class="org-left">user-set is updated</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">login(u: User, s:System)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">u:user-set</td>
+<td class="org-left">session-set increases</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">logOut( s:System, ss:Session-set)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">ss:session-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">session-set decreases</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">editRole(r: Role, s: Session, u: User)</td>
 <td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
+<td class="org-left">u: User-set</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
+<td class="org-left">s: Session-set</td>
+<td class="org-left">success</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">user-set updated</td>
 <td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">createUser(u:User, s:Session, e:Email)</td>
-<td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
-</tr>
-
-<tr>
+<td class="org-left">editName(n:Name, s: Session, u: User)</td>
+<td class="org-left">s.user.role=admin or</td>
+<td class="org-left">u: User-set</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
 <td class="org-left">&#xa0;</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
+<td class="org-left">s.user=u</td>
+<td class="org-left">s: Session-set</td>
+<td class="org-left">success</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">e:emailSet</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">modifyUser(u:User, s:Session)</td>
-<td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
 <td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">getUserName(u:User, s:Session, e:Email)</td>
-<td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Returns user name, upon entering a valid</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
-<td class="org-left">email id</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">e:emailSet</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">getEmailList(u:User, s:Session)</td>
-<td class="org-left">s.user.role=admin</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Returns list of Email ids in the system</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">s:sessionSet</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">userLogin(u:User, s:System)</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">userLogout(u:User, s:Session)</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Logs a user out of a session</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">changeDetails(u:User, s:Session)</td>
-<td class="org-left">s.user.role=admin OR</td>
-<td class="org-left">u:userSet</td>
-<td class="org-left">Success/Failure</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">s.user.role=user</td>
-<td class="org-left">s:sessionSet</td>
+<td class="org-left">user-set updated</td>
 <td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
@@ -814,9 +866,9 @@ types of actors:  <code>system</code> and <code>session</code>.
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Date: <span class="timestamp-wrapper"><span class="timestamp">[2016-05-17 Tue]</span></span></p>
-<p class="author">Author: Ian Galvin Fernandes VLEAD</p>
-<p class="date">Created: 2016-05-18 Wed 09:03</p>
+<p class="date">Date: <span class="timestamp-wrapper"><span class="timestamp">[2016-05-11 Wed]</span></span></p>
+<p class="author">Author: VLEAD VLEAD</p>
+<p class="date">Created: 2016-06-02 Thu 21:38</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

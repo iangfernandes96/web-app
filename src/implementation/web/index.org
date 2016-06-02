@@ -60,7 +60,7 @@ business logic in parallel.
 * How to implement ??
 ** Source Code
 *** Initiating Angular application on html page
-#+BEGIN_SRC 
+#+BEGIN_SRC html 
 <div ng-app="directoryApp">
   <div ng-view>
   </div>
@@ -68,6 +68,9 @@ business logic in parallel.
 #+END_SRC
 *** Router 
 - =app.js=
+ - The following =route= is implemented for displaying the list of all
+   users.The controller =users= will fetch the data from REST API and will
+   render to the template =users.html= 
 
 #+BEGIN_SRC javascript :tangle ../../src/static/js/app.js :eval no
 var app = angular.module('directoryApp',['ngRoute','directoryApp.controllers']);
@@ -77,14 +80,35 @@ app.config(function($routeProvider){
       templateUrl : '/static/partials/users.html',
       controller  : 'users'
     })
+#+END_SRC
+
+- The following =route= is implemented for displaying detailed view of a specific
+  user. The controller =view-users= will fetch the data from REST API and will
+  render to the template =view-user.html=
+#+BEGIN_SRC javascript :tangle ../../src/static/js/app.js :eval no
     .when('/view-user/:id', {
       templateUrl : '/static/partials/view-user.html',
       controller  : 'view-users'
     })
+#+END_SRC
+
+- Following =route= is implemented for adding a new user . The controller
+  =add-users= will fetch the data from REST API and will render to the template
+  =add-user.html=
+
+#+BEGIN_SRC javascript :tangle ../../src/static/js/app.js :eval no
     .when('/add-user',{
       templateUrl : '/static/partials/add-user.html',
       controller  : 'add-user'
     })
+#+END_SRC
+
+- Following =route= is implemented for editing the details of an existing
+  user. The controller =edit-user= will fetch the data from REST API and will
+  render to the template =edit-user.html=
+
+#+BEGIN_SRC javascript :tangle ../../src/static/js/app.js :eval no
+
     .when('/edit-user/:id', {
       templateUrl : '/static/partials/edit-user.html',
       controller  : 'edit-user'
@@ -97,6 +121,10 @@ app.config(function($routeProvider){
 #+END_SRC
 *** Controller
 - =controller.py=
+**** Users Controller
+- The following controller =users= makes a get request to =/users= and fetches
+  the list all of users and stores the response in $scope.users
+
 #+BEGIN_SRC javascript :tangle ../../src/static/js/controllers.js :eval no
 var app = angular.module('directoryApp.controllers',[]);
 app.controller("users", function($scope,  $http, $routeParams, $route,$window){
@@ -107,7 +135,14 @@ app.controller("users", function($scope,  $http, $routeParams, $route,$window){
     }).error(function(response){alert("Unable to display content.")});
 
 });
+#+END_SRC
 
+**** View-users Controller
+  - The following controller =view-users= makes a get request to =/users/<int:id>= and
+    stores the response in $scope.users
+  - Also the delete function makes a delete request  to =/users/=
+
+#+BEGIN_SRC javascript :tangle ../../src/static/js/controllers.js :eval no
 app.controller("view-users", function($scope,  $http, $routeParams, $route,$window){
     $scope.role_name = $window.role_name;
     //alert($window.user_id);
@@ -130,7 +165,13 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 
 
 });
+#+END_SRC
+**** Add-user Controller
+  - The following controller =add-user= makes a post request to =/users= by
+    passing a payload consisting of name,email,role and session(email of admin
+    who is adding the user)
 
+#+BEGIN_SRC javascript :tangle ../../src/static/js/controllers.js :eval no
 app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$window){
     $scope.role_name=$window.role_name;
     $scope.session_email=$window.session_email;
@@ -161,8 +202,14 @@ app.controller("add-user", function($scope,   $http,  $routeParams,  $route,$win
             
             };
 });
+#+END_SRC
 
+**** edit-user Controller
+- The following controller =edit-user= makes a put request to =/users/<int:id>=
+  by passing a payload that consists name, email,role_id and session(email of
+  user who is logged in)
 
+#+BEGIN_SRC javascript :tangle ../../src/static/js/controllers.js :eval no
 app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$window){
     $scope.role_name=$window.role_name;
     $scope.session_email=$window.session_email;
@@ -194,12 +241,12 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
     
 });
     
-
-
 #+END_SRC
+
 *** View
 **** Users
 - =users.html=
+- This is html code that displays the list of all users
 #+BEGIN_SRC html :tangle ../../src/static/partials/users.html :eval no
 <div class="row">
   <div class="col-md-9"><h2>Users</h2></div>
@@ -236,6 +283,9 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
 
 **** View-user
 - =view-user.html=
+  - This is the html code that displays all the detailed view of a specific
+    user
+
 #+BEGIN_SRC html :tangle ../../src/static/partials/view-user.html :eval no
 <div class="row">
   <div class="col-md-4"></div>
@@ -288,6 +338,7 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
 
 #+END_SRC
 **** Add-user
+  - This html code displays the Add-user form
 #+BEGIN_SRC html :tangle ../../src/static/partials/add-user.html :eval no
 <div class="row">
   <div class="col-md-4"></div>
@@ -329,7 +380,7 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
 </div>
 #+END_SRC
 **** Edit-user
-
+  - This html code displays the Edit-user form 
 #+BEGIN_SRC html :tangle ../../src/static/partials/edit-user.html :eval no
 
 <div class="row">
@@ -359,3 +410,4 @@ app.controller("edit-user", function($scope,   $http,  $routeParams,  $route,$wi
   <div class="col-md-4"></div>
 </div>
 #+END_SRC
+

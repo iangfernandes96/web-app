@@ -35,9 +35,45 @@ api = Blueprint('APIs', __name__)
 system = System()
 #+END_SRC
 
+** URL mappping for REST API
 
+|-------------+--------------------+-----------------------|
+| METHOD      | FUNCTION           | URL                   |
+|-------------+--------------------+-----------------------|
+| GET         | get_users          | /users                |
+|-------------+--------------------+-----------------------|
+| GET         | get_roles          | /roles                |
+|-------------+--------------------+-----------------------|
+| GET         | get_user_by_id     | /users/<int:id>       |
+|-------------+--------------------+-----------------------|
+| GET         | get_role_by_id     | /roles/<int:id>       |
+|-------------+--------------------+-----------------------|
+| POST        | create_user        | /users                |
+|-------------+--------------------+-----------------------|
+| POST        | create_role        | /roles                |
+|-------------+--------------------+-----------------------|
+| PUT, DELETE | update_delete_user | /users/<int:id>       |
+|-------------+--------------------+-----------------------|
+| PUT, DELETE | update_delete_role | /roles/<int:id>       |
+|-------------+--------------------+-----------------------|
+| GET         | get_user_by_email  | /users/get_email      |
+|-------------+--------------------+-----------------------|
+| GET         | get_email_of_user  | /users/<int:id>/email |
+|-------------+--------------------+-----------------------|
+| GET         | get_name_of_user   | /users/<int:id>/name  |
+|-------------+--------------------+-----------------------|
+| PUT         | change_user_email  | /users/<int:id>email  |
+|-------------+--------------------+-----------------------|
+| GET         | index              | /                     |
+|-------------+--------------------+-----------------------|
+| GET, POST   | login              | /auth/login           |
+|-------------+--------------------+-----------------------|
+| GET         | logout             | /auth/logout          |
+|-------------+--------------------+-----------------------|
+                                    
 ** GET all users
-
+   This is the REST API method to get all the users stored in the user set of
+   the system class.
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/users', methods=['GET'])
 def get_users():
@@ -47,7 +83,7 @@ def get_users():
 #+END_SRC
    
 ** GET all roles
-   The is the REST API to get all the roles.
+   The is the REST API method to get all the roles stored in the Role table.
 
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/roles', methods=['GET'])
@@ -56,7 +92,7 @@ def get_roles():
 #+END_SRC
 
 ** GET a user with id
-
+   This is the REST API method to get a user by id.
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/users/<int:id>', methods=['GET'])
 def get_user_by_id(id):
@@ -68,7 +104,7 @@ def get_user_by_id(id):
 #+END_SRC
 
 ** GET a role with id
-
+   This is the REST API method to get a role by id, from the Role table.
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/roles/<int:id>', methods=['GET'])
 def get_role_by_id(id):
@@ -80,6 +116,8 @@ def get_role_by_id(id):
 #+END_SRC
 
 ** Create a user
+   This is the REST API method for creating a user. Only a user, who is an
+   admin and is currently logged in may create a user.
    Usage:
    #+BEGIN_EXAMPLE
    POST request
@@ -122,6 +160,7 @@ def create_user():
 #+END_SRC
 
 ** Create a role
+   This is the REST API method to create a role.
 
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 
@@ -143,6 +182,9 @@ def create_role():
 #+END_SRC
 
 ** Update/Delete user
+   This is the REST API method to update or delete a user from the user set of
+   the System object. An admin user may update or delete anyone. However, a
+   user can only update himself. Also, an admin cannot delete himself.
 *** Implementation
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/users/<int:id>', methods=['PUT', 'DELETE'])
@@ -218,6 +260,8 @@ def update_delete_user(id):
 
 #+END_SRC
 ** Update/Delete a role
+   This is the REST API method to update or delete a role in the role table.
+*** Implementation
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/roles/<int:id>', methods=['PUT', 'DELETE'])
 def update_delete_role(id):
@@ -256,6 +300,7 @@ def update_delete_role(id):
 
 
 ** Get user by email
+   This is the REST API method to get a user from the user set by passing an email.
 **** Implementation
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
 @api.route('/users/get_email', methods=['GET'])
@@ -281,6 +326,8 @@ def get_user_by_email():
 #+END_SRC
 
 ** Get email of user
+   This is the REST API method to get the email of a particular user in the
+   user set.
 *** Implementation
 
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
@@ -318,6 +365,7 @@ def get_email_of_user(id):
 #+END_SRC
 
 ** Get name of user
+   This is the REST API method to get the name of the user in the user set.
 *** Implementation
 
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
@@ -355,6 +403,9 @@ def get_name_of_user(id):
 #+END_SRC
 
 ** Set email of user 
+   This is the REST API method to set the email of a user. This method also
+   checks if the entered email exists in the database. If so, it does not allow
+   the change.
    
 *** Implementation
 #+BEGIN_SRC python :tangle ../../src/api.py :eval no
@@ -417,6 +468,10 @@ def change_user_email(id):
 
 
 ** Login/Logout
+    These are the REST API methods for login and logout.
+    If the user is already logged in then it will redirect to 'user-list.html'
+    otherwise it will take a user to 'login.html'.
+
 *** Implementation
 #+BEGIN_SRC python :tangle ../../src/api.py
 @api.route("/", methods=['GET'])
@@ -480,6 +535,7 @@ def logout_handler():
 
 #+END_SRC
 
+
 * Tests for REST API
 ** Initialization
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
@@ -502,6 +558,10 @@ config = {
 #+END_SRC
 
 ** User Tests
+   The setup method creates all the tables and the teardown method deletes the
+   tables. These methods are called in the beginning and at the end of the test
+   cases, respectively.
+
 *** Initialization
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 class TestUser(TestCase):
@@ -523,6 +583,8 @@ class TestUser(TestCase):
 
 
 *** test_get_all_users
+    Test case for '/users' ['GET']
+    Creates an admin and a user and makes a call to '/users' and hence tests get_all_users().
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -549,6 +611,9 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_get_one_user
+     Test case for '/users/<int:id>' ['GET']
+     Makes a call to the given route and returns a user, if it is present in
+     the user set.
 **** Implementation
 
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
@@ -578,6 +643,8 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_update_existing_user
+    Test case for '/users/<int:id>' ['PUT']
+    Tests the updating of a particular user.
 **** Implementation
 
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
@@ -630,6 +697,9 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_create_new_user
+    Test case for '/users' ['POST']
+    Tests the creation of a new user, according to the bounds of the
+    create_user function.
 **** Implementation
 
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
@@ -670,6 +740,7 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_delete_user
+    Test case for '/users/<int:id>' [DELETE] 
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -712,27 +783,14 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_create_role
+    Test case for '/roles' ['POST']
 **** Implementation
 
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
     def test_create_role(self):
         print "test_create_role"
-        #role1 = Role("admin")
-        #role1.save()
-        #role2 = Role("user")
-        #role2.save()
-
-        #user1 = User(name = "admin user",
-        #             email= "admin@xyz.com",
-        #             role=role1)
-
-        #user1.save()
-        #user2 = User(name="normal user",
-        #             email="normal@xyz.com",
-        #             role=role2)
-
-        #user2.save()
+     
 
         payload = {'name': 'owner'}
 
@@ -748,6 +806,7 @@ class TestUser(TestCase):
 #+END_SRC 
 
 *** test_update_role
+    Test case for '/roles/<int:id>' [PUT]
 **** Implementation
 
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
@@ -771,25 +830,7 @@ class TestUser(TestCase):
         system.get_users_from_database()
         s=Session(user=user1)
         system.add_session(user1)
-        #payload = {'session': 'admin@xyz.com'}
-        #user1 = User(name="admin user",
-        #             email="admin@xyz.com",
-        #             role=role1)
-
-        #user1.save()
-        #user2 = User(name="normal user",
-        #             email="normal@xyz.com",
-        #             role=role2)
-
-        #user2.save()
-
-        #admin_user = User.get_by_id(1)
-        #admin_session = Session(user = admin_user)
-        #system.session_set.append(admin_session)
-        #system.get_users_from_database()
         
-        #for x in system.session_set:
-        #    print x.to_client()
 
         payload = {'role': 'owner',
                    'session' : 'admin@xyz.com'
@@ -804,6 +845,7 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_delete_role
+    Test case for '/roles/<int:id>' [DELETE]
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -821,11 +863,7 @@ class TestUser(TestCase):
 
         user1.save()
         system.get_users_from_database()
-        #user2 = User(name="normal user",
-        #             email="normal@xyz.com",
-        #             role=role2)
-
-        #user2.save()
+     
         
         s=Session(user=user1)
         system.add_session(user1)
@@ -843,6 +881,7 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_get_user_by_email
+    Test case for '/roles/<int:id>' [GET]
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -882,6 +921,7 @@ class TestUser(TestCase):
 
 
 *** test_get_email_of_user
+    Test case for '/users/<int:id>/email'
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -920,6 +960,7 @@ class TestUser(TestCase):
 #+END_SRC
 
 *** test_get_name_of_user
+    Test case for '/users/<int:id>/name'
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
@@ -959,6 +1000,7 @@ class TestUser(TestCase):
 
 
 *** test_set_email_of_user
+    Test case for '/users/<int:id>/email'
 **** Implementation
 #+BEGIN_SRC python :tangle ../../tests/test_api.py :eval no
 
