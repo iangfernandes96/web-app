@@ -104,7 +104,7 @@ app.controller("users", function($scope,  $http, $routeParams, $route,$window){
     $scope.session_email = $window.session_email;
     $http.get("http://localhost:5000/users").success(function(response){
 	$scope.users = response;
-    }).error(function(response){alert("Unable to display content.");
+    }).error(function(response){alert("Unable to display content.")});
 
 });
 
@@ -117,6 +117,7 @@ app.controller("view-users", function($scope,  $http, $routeParams, $route,$wind
 	$scope.users = response;
     }).error(function(response){
     alert("Unable to display the user.");
+    });
 
     $scope.delete_user = function() {
         //alert("Delete function");
