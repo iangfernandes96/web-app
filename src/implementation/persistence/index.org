@@ -877,7 +877,6 @@ class TestSession(TestCase):
         }
 #+END_SRC
 
-
 ** System
    This class maintains user_set (list of all users in the directory),
    session_set (list of all sessions currently logged in) 
@@ -2132,6 +2131,86 @@ Test case for deletion of user by an admin who isn't logged in.
         #tearDown(system)
 
 #+END_SRC
+
+
+** Audit
+*** Mutable data
+    There are six types of mutable data in this class:
+    - Time-stamp
+    - session
+    - Entity
+    - Operation
+    - Old-data
+    - Status
+
+*** Definition
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+class Audit(Entity):
+    
+    __tablename__ = "audits"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.TIMESTAMP, nullable = False)
+    enitity = db.Column(db.String(128), nullable=False)
+    session = db.Column(db.String(128), nullable=False)
+    status = db.Column(db.String(128), nullable = False)
+    old_data = db.Column(db.String(128))
+    operation = db.Columns(db.String(128), nullable = False)
+
+
+#+END_SRC
+
+*** Constructor
+**** Implementation
+     
+#+BEGIN_SRC python :tangle ../../src/obj.py :eval no
+    def __init__(self, **kwargs):
+       
+        if not 'session' in kwargs:
+            raise AttributeRequired("Session is missing")
+       
+        if not 'operation' in kwargs:
+            raise AttributeRequired("Operation is missing")
+            
+        if not 'entity' in kwargs:
+            raise AttributeRequired("Entity is missing")
+            
+        self.session = json.dumps(kwargs['session'])
+        self.timestamp = kwargs['timestamp']
+        self.operation = kwargs['operation']
+        self.entity = kwargs['entity']
+        self.status = kwargs['status']
+        self.old_data = json.dumps(kwargs['old_data']) 
+        
+#+END_SRC
+
+*** Operations
+**** changeStatus
+***** Implementation
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def change_status(self, status):
+        if not status:
+            raise ConstraintError('Status is not passed')
+        else:
+            self.status = status
+            self.update()
+
+#+END_SRC
+**** toClient
+#+BEGIN_SRC python :tangle ../../src/db.py :eval no
+    def to_client(self):
+        return {
+            'id': self.id,
+            'session': self.session.to_client(),
+            'entity': self.entity,
+            'operation': self.operation,
+            'timestamp': self.timestamp,
+            'old-data' : self.old_data,
+            'status' : self.status
+        }
+#+END_SRC
+
+
 
 * Run Test Cases
  
