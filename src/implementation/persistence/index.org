@@ -1061,6 +1061,7 @@ class TestSystem(TestCase):
                 if not check:
              #       a= Audit(session=json.dumps(session.to_client()),operation="deleteUser",time=datetime.now(),entity="User",status="success")
              #       a.save()
+                    self.del_session(user,session)
                     user.delete()
                     self.user_set = User.get_all()
                 else:
