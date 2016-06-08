@@ -949,9 +949,13 @@ class TestSystem(TestCase):
     def add_user(self, user,session):
         if session in self.session_set:
             if session.user.role == Role.get_by_id(1):
+                a= Audit(session=json.dumps(session.to_client()),entity="User",old_data="",operation="createuser",status="success",timestamp=datetime.now())
+                a.save()
                 user.save()
                 self.user_set = User.get_all()
             else:
+                a= Audit(session=json.dumps(session.to_client()),entity="User",old_data="",operation="createUser",status="failure",timestamp=datetime.now())
+                a.save()
                 raise NotAuthorizedError("Only admin can add")
         else:
             raise ConstraintError("Invalid Session")
@@ -1055,7 +1059,8 @@ class TestSystem(TestCase):
                     if x.user.email == user.email:
                         check = True
                 if not check:
-                    
+             #       a= Audit(session=json.dumps(session.to_client()),operation="deleteUser",time=datetime.now(),entity="User",status="success")
+             #       a.save()
                     user.delete()
                     self.user_set = User.get_all()
                 else:
@@ -1326,7 +1331,7 @@ Test case for deletion of user by an admin who isn't logged in.
     def make_user(self,name,email,role,session):
         if session in self.session_set:
             if(session.user.role==Role.get_by_id(1)):
-                user=User(name=name,email=email,role=rol
+                user=User(name=name,email=email,role=role)
                 self.add_user(user,session)  
             else:
                 raise NotAuthorizedError('only admin can create user')
@@ -1847,7 +1852,7 @@ Test case for deletion of user by an admin who isn't logged in.
 
     def logout(self, user, session):
         if session in self.session_set:
-            if user in self.user_set:
+            if user in self.user_set:               
                 self.del_session(user, session)
             else:
                 raise ConstraintError("user not in system")
@@ -1959,7 +1964,7 @@ Test case for deletion of user by an admin who isn't logged in.
         if check:
             session = Session(user = user)
             a = Audit(session=json.dumps(session.to_client()), entity="System",
-                     olddata=" ", operation="createSession", status="success", time=str(datetime.now()) )
+                     old_data=" ", operation="createSession", status="success", timestamp=str(datetime.now()) )
             a.save()
             self.session_set.append(session)
         else:
@@ -2003,6 +2008,9 @@ Test case for deletion of user by an admin who isn't logged in.
             if not user in self.user_set:
                 raise ConstraintError("User doesn't exist in system")
             else:
+                old_data=json.dumps(user.to_client())
+                a= Audit(session=json.dumps(session.to_client()),operation="delete session",timestamp=datetime.now(),old_data=old_data,entity="System",status="sucess")
+                a.save()
                 sessions_list = self.session_set
                 new_sessions = filter(lambda x: x.user.email == user.email,
                 sessions_list)
@@ -2171,11 +2179,11 @@ class Audit(Entity):
     
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.String(100))
-    enitity = db.Column(db.String(128), nullable=False)
+    entity = db.Column(db.String(128), nullable=False)
     session = db.Column(db.String(128), nullable=False)
     status = db.Column(db.String(128), nullable = False)
     old_data = db.Column(db.String(128))
-    operation = db.Columns(db.String(128), nullable = False)
+    operation = db.Column(db.String(128), nullable = False)
 
 
 #+END_SRC
@@ -2231,6 +2239,46 @@ class Audit(Entity):
 #+END_SRC
 
 
+*** Testing
+#+BEGIN_SRC python :tangle ../../tests/test_db.py :eval no
+class TestAudit(TestCase):
+    TESTING = True
+
+    def create_app(self):
+        app = create_app(config)
+        return app
+
+    def setUp(self):
+        db.create_all()
+        setUp()
+
+    def tearDown(self):
+        tearDown()
+        
+
+    def test_Audit_creation(self):
+        print "test_audit_creation for login and add user"
+        user = User(name = "abcdefghi", email = "abcdefghi@gmail.com", role =
+        Role.get_by_id(2))
+        admin_users = filter(lambda x: x.role == Role.get_by_id(1), system.user_set)
+        admin_user = admin_users[0]
+        admin_session = Session(user = admin_user)
+        system.session_set.append(admin_session)
+        system.add_user(user, admin_session)
+        print "*********************************"
+        system.login(user)
+        print "Audit checking"
+        x= Audit.query.all()
+        print len(x)
+        for i in x:
+          print i.timestamp
+          print i.session
+          print i.old_data
+        
+        print "Audit checking done"
+       
+      
+#+END_SRC
 
 * Run Test Cases
  
