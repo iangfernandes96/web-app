@@ -1551,11 +1551,12 @@ Test case for deletion of user by an admin who isn't logged in.
         #print self.session_set
         #for x in self.session_set:
         #    print x.user.email
+        a = Audit(session=json.dumps(session.to_client()), entity="User",
+                        old_data=json.dumps(user.to_client()), operation="updateUserEmail", status="Ongoing", timestamp=str(datetime.now()) )
+        a.save()
+
         if session in self.session_set:
             check = filter(lambda x: x.email == email, self.user_set)
-            a = Audit(session=json.dumps(session.to_client()), entity="User",
-                        olddata=json.dumps(user.to_client()), operation="updateUserEmail", status="Ongoing", time=str(datetime.now()) )
-            a.save()
             if not check:
                 if user in self.user_set:
                     if session.user.role.name == "admin":
@@ -1676,7 +1677,7 @@ Test case for deletion of user by an admin who isn't logged in.
         #for x in self.session_set:
         #    print x.user.email
         a = Audit(session=json.dumps(session.to_client()), entity="User",
-                        olddata=json.dumps(user.to_client()), operation="updateUserName", status="Ongoing", time=str(datetime.now()) )
+                        old_data=json.dumps(user.to_client()), operation="updateUserName", status="Ongoing", timestamp=str(datetime.now()) )
         a.save()
         if session in self.session_set:
             #check = filter(lambda x: x.email == email, self.user_set)
