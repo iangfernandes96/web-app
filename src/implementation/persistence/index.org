@@ -1796,6 +1796,13 @@ Test case for deletion of user by an admin who isn't logged in.
         system.session_set.append(admin_session)
         system.add_user(user, admin_session)
         old_session_set_length = len(system.session_set)
+        print "*********************************"
+        system.login(user)
+        print "Audit checking"
+        x= Audit.query.all()
+        print x[0].time
+        print "Audit checking done"
+       
         system.login(user)
         new_session_set_length = len(system.session_set)
         self.assertEquals(old_session_set_length + 1, new_session_set_length)
@@ -1941,6 +1948,9 @@ Test case for deletion of user by an admin who isn't logged in.
         check = filter(lambda x: x.email == user.email, self.user_set)
         if check:
             session = Session(user = user)
+            a = Audit(session=json.dumps(session.to_client()), entity="System",
+                     olddata=" ", operation="createSession", status="success", time=str(datetime.now()) )
+            a.save()
             self.session_set.append(session)
         else:
             raise ConstraintError("User is not in the system")
@@ -2150,7 +2160,7 @@ class Audit(Entity):
     __tablename__ = "audits"
     
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.TIMESTAMP, nullable = False)
+    timestamp = db.Column(db.String(100))
     enitity = db.Column(db.String(128), nullable=False)
     session = db.Column(db.String(128), nullable=False)
     status = db.Column(db.String(128), nullable = False)
