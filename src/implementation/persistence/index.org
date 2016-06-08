@@ -1548,23 +1548,32 @@ Test case for deletion of user by an admin who isn't logged in.
         #    print x.user.email
         if session in self.session_set:
             check = filter(lambda x: x.email == email, self.user_set)
+            a = Audit(session=json.dumps(session.to_client()), entity="User",
+                        olddata=json.dumps(user.to_client()), operation="updateUserEmail", status="Ongoing", time=str(datetime.now()) )
+            a.save()
             if not check:
                 if user in self.user_set:
                     if session.user.role.name == "admin":
                         user.set_email(email)
                         user.update()
+                        a.change_status("Success")
                         self.user_set = User.get_all()
                     elif session.user.email == user.email:
                         user.set_email(email)
                         user.update()
+                        a.change_status("Success")
                         self.user_set = User.get_all()
                     else:
-                        raise NotAuthorizedError("You don't have permission to change the email")
+                        a.change_status("Failure")
+                        raise NotAuthorizedError("You don't have permission to change the email")                        
                 else:
+                    a.change_status("Failure")
                     raise ConstraintError('User does not exist')
             else:
+                a.change_status("Failure")
                 raise ConstraintError("Email already exists")
         else:
+            a.change_status("Failure")
             raise ConstraintError("Invalid Session")
 
 #+END_SRC
@@ -1661,6 +1670,9 @@ Test case for deletion of user by an admin who isn't logged in.
         #print self.session_set
         #for x in self.session_set:
         #    print x.user.email
+        a = Audit(session=json.dumps(session.to_client()), entity="User",
+                        olddata=json.dumps(user.to_client()), operation="updateUserName", status="Ongoing", time=str(datetime.now()) )
+        a.save()
         if session in self.session_set:
             #check = filter(lambda x: x.email == email, self.user_set)
             #if not check:
@@ -1668,16 +1680,21 @@ Test case for deletion of user by an admin who isn't logged in.
                 if session.user.role.name == "admin":
                     user.set_name(name)
                     user.update()
+                    a.change_status("Success")
                     self.user_set = User.get_all()
                 elif session.user.email == user.email:
                     user.set_name(name)
                     user.update()
+                    a.change_status("Success")
                     self.user_set = User.get_all()
                 else:
+                    a.change_status("Failure")
                     raise NotAuthorizedError("You don't have permission to change the name")
             else:
+                a.change_status("Failure")
                 raise ConstraintError('User does not exist')
         else:
+            a.change_status("Failure")
             raise ConstraintError("Invalid Session")
 
 #+END_SRC
@@ -1795,14 +1812,7 @@ Test case for deletion of user by an admin who isn't logged in.
         admin_session = Session(user = admin_user)
         system.session_set.append(admin_session)
         system.add_user(user, admin_session)
-        old_session_set_length = len(system.session_set)
-        print "*********************************"
-        system.login(user)
-        print "Audit checking"
-        x= Audit.query.all()
-        print x[0].time
-        print "Audit checking done"
-       
+        old_session_set_length = len(system.session_set)                 
         system.login(user)
         new_session_set_length = len(system.session_set)
         self.assertEquals(old_session_set_length + 1, new_session_set_length)
