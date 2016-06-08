@@ -1049,8 +1049,16 @@ class TestSystem(TestCase):
 ***** Implementation
 #+BEGIN_SRC python :tangle ../../src/db.py :eval no
     def del_user(self, user, session):
+        y=0
         print session.user.email
-        if session in self.session_set:
+        print len(self.session_set)
+        for x in self.session_set:
+           print x.user.email
+           if (x.user.email==session.user.email):
+              y=1
+              
+        #if session in self.session_set:
+        if y==1:
             if not session.user.role.name == "admin":
                 raise NotAuthorizedError("Only admin can remove users")
             else:
@@ -1059,9 +1067,13 @@ class TestSystem(TestCase):
                     if x.user.email == user.email:
                         check = True
                 if not check:
-             #       a= Audit(session=json.dumps(session.to_client()),operation="deleteUser",time=datetime.now(),entity="User",status="success")
-             #       a.save()
+                    old_data=json.dumps(user.to_client())
+                    a= Audit(session=json.dumps(session.to_client()),operation="deleteUser",timestamp=datetime.now(),entity="User",old_data=old_data,status="success")
+                    a.save()
                     self.del_session(user,session)
+
+                   
+
                     user.delete()
                     self.user_set = User.get_all()
                 else:
@@ -2014,7 +2026,7 @@ Test case for deletion of user by an admin who isn't logged in.
                 a= Audit(session=json.dumps(session.to_client()),operation="delete session",timestamp=datetime.now(),old_data=old_data,entity="System",status="sucess")
                 a.save()
                 sessions_list = self.session_set
-                new_sessions = filter(lambda x: x.user.email == user.email,
+                new_sessions = filter(lambda x: x.user.email != user.email,
                 sessions_list)
                 sessions_list = new_sessions
                 self.session_set = sessions_list
@@ -2264,8 +2276,11 @@ class TestAudit(TestCase):
         Role.get_by_id(2))
         admin_users = filter(lambda x: x.role == Role.get_by_id(1), system.user_set)
         admin_user = admin_users[0]
+        system.session_set = []
         admin_session = Session(user = admin_user)
         system.session_set.append(admin_session)
+        for x in system.session_set:
+            print x.to_client()
         system.add_user(user, admin_session)
         print "*********************************"
         system.login(user)
@@ -2278,8 +2293,24 @@ class TestAudit(TestCase):
           print i.old_data
         
         print "Audit checking done"
+        user_session = None
+        for x in system.session_set:
+            if x.user.email == user.email:
+                user_session = x
+        system.logout(user,user_session)
+        print " Audit deletion"
+        
+        
        
-      
+        system.del_user(user,admin_session)
+        print "length after deletion"
+        x=Audit.query.all()
+        print len(x)
+        for i in x:
+          print i.timestamp
+          print i.session
+          print i.old_data
+              
 #+END_SRC
 
 * Run Test Cases
